@@ -19,20 +19,24 @@
     - full name
     - email
     - edit profile button
- - repository (/:username/:repo_name)
+ - repository (/:username/:repo_id)
    - list of all files
    - add file button
 
- - list of all branches (/:username/:repo_name/branches)
- - branch (/:username/:repo_name/:branch_name)
- - file (/:username/:repo_name/:branch_name/:file_name)
+ - list of all branches (/:username/:repo_id/branches)
+ - branch (/:username/:repo_id/:branch_name)
+    
+ - file (/:username/:repo_id/:branch_name/:file_name)
     - file content
     - download button
-    - delete button
     - edit button
     - add comment button
     - list of all comments
- - pull request (/:username/:repo_name/:branch_name/:file_name/pull_request)
+ - pull request (/:username/:repo_name/:branch_name/pull_request)
+   - for any branch the same list 
+   - but fro all branches execpt main it show a button to create a pull request
+   - any person can view the pull request but only the admin can accept  
+   -pull request are made to other branches to main branch
 
 
 
@@ -70,6 +74,7 @@ CREATE TABLE Branches (
     FOREIGN KEY (creator_id) REFERENCES Users(user_id) ON DELETE CASCADE,
     FOREIGN KEY (parent_branch_id) REFERENCES Branches(branch_id) ON DELETE SET NULL,
     FOREIGN KEY (base_commit_id) REFERENCES Commits(commit_id) ON DELETE SET NULL
+    FOREIGN KEY (last_commit_id) REFERENCES Commits(commit_id) ON DELETE SET NULL
 );
 
 CREATE TABLE Commits (
@@ -134,6 +139,7 @@ CREATE TABLE Issues (
 CREATE TABLE Contributors (
     repo_id INT,
     user_id INT,
+    role VARCHAR(50) DEFAULT 'Contributor', //can be admin or contributor
     PRIMARY KEY (repo_id, user_id), 
     FOREIGN KEY (repo_id) REFERENCES Repositories(repo_id) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE CASCADE
