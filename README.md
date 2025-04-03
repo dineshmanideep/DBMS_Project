@@ -19,19 +19,32 @@
     - full name
     - email
     - edit profile button
- - repository (/:username/:repo_id)
+ - repository (/:username/:repo_id/main)
    - list of all files
    - add file button
 
+ - repository settings (/:username/:repo_id/settings)
+    -only admin can access this page
+   - delete repository button
+   - add contributor button
+   - remove contributor button
+   - change role of contributor button
+   - change visibility of repository button (public/private)
+   - list of all contributors with their roles and a button to change their role
+
  - list of all branches (/:username/:repo_id/branches)
  - branch (/:username/:repo_id/:branch_name)
+   - list of all files in that particular branch
+    - add file button
+    - same features are available as in main branch
+    - list of all commits in that branch
     
  - file (/:username/:repo_id/:branch_name/:file_name)
     - file content
     - download button
     - edit button
     - add comment button
-    - list of all comments
+    - list of all comments visible on click of history button in this page
  - pull request (/:username/:repo_name/:branch_name/pull_request)
    - for any branch the same list 
    - but fro all branches execpt main it show a button to create a pull request
