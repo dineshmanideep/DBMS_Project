@@ -2,7 +2,7 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken'
 // if the export was export default no need to put {}
 // if it has mulitple exports use {}
-import User  from '../models/User.js';
+import { User } from '../models/index.js';
 
 
 const createTokenAndSetCookie = (user, res) => {

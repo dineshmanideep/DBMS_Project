@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Plus, GitFork, Star } from 'lucide-react';
+import { BASE_URL } from '../context/AuthContext';
 
 interface RepositoryCard {
   repo_name: string;
@@ -33,9 +34,20 @@ export default function Home() {
   const { user } = useAuth();
   useEffect(() => {
     console.log("userdetails",user);
+    getAllrepos();
   
 
   }, [])
+
+  const getAllrepos = async()=>{
+    const response = await fetch(`${BASE_URL}/repo/all`,{
+      method:'GET',
+      credentials:'include'
+    });
+    const data= await response.json();
+    console.log(data);
+
+  }
   
 
   return (

@@ -10,7 +10,7 @@ interface AuthContextType {
   getCurrentUser: () => Promise<void>;
 }
 
-const BASE_URL= 'http://localhost:3000';
+export const BASE_URL= 'http://localhost:3000';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 

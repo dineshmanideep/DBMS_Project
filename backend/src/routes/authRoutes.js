@@ -6,7 +6,7 @@ const router=express.Router();
 
 router.post('/signup',signup);
 router.post('/login',login);
-router.get('/logout',authenticateToken,logout);
+router.post('/logout',authenticateToken,logout);
 router.get('/me',authenticateToken,getCurrentUser);
 
 

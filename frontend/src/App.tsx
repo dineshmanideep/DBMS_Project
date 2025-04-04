@@ -12,11 +12,13 @@ import BranchList from './pages/BranchList';
 import BranchView from './pages/BranchView';
 import FileView from './pages/FileView';
 import PullRequest from './pages/PullRequest';
+import NavBar from './components/Navbar';
 
 function App() {
   return (
     <AuthProvider>
       <Router>
+        <NavBar/>
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
