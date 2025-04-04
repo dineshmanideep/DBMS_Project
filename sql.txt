@@ -37,10 +37,12 @@ commit_timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
 FOREIGN KEY (branch_id) REFERENCES Branches(branch_id) ON DELETE CASCADE,
 FOREIGN KEY (creator_id) REFERENCES Users(user_id) ON DELETE CASCADE
 );
+
 ALTER TABLE Branches
 ADD FOREIGN KEY (base_commit_id) REFERENCES Commits(commit_id) ON DELETE SET NULL;
 ALTER TABLE Branches
 ADD FOREIGN KEY (last_commit_id) REFERENCES Commits(commit_id) ON DELETE SET NULL;
+
 CREATE TABLE Files (
 file_id INT AUTO_INCREMENT PRIMARY KEY,
 commit_id INT,
@@ -51,6 +53,7 @@ file_content LONGBLOB NOT NULL,
 uploaded_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 FOREIGN KEY (commit_id) REFERENCES Commits(commit_id) ON DELETE CASCADE
 );
+
 CREATE TABLE Pull_Requests (
 pr_id INT AUTO_INCREMENT PRIMARY KEY,
 creator_id INT,
@@ -64,6 +67,7 @@ FOREIGN KEY (creator_id) REFERENCES Users(user_id) ON DELETE CASCADE,
 FOREIGN KEY (base_branch_id) REFERENCES Branches(branch_id) ON DELETE CASCADE,
 FOREIGN KEY (target_branch_id) REFERENCES Branches(branch_id) ON DELETE CASCADE
 );
+
 CREATE TABLE Pull_Request_Reviews (
 pr_id INT,
 reviewer_id INT,
@@ -73,6 +77,7 @@ PRIMARY KEY (pr_id, reviewer_id),
 FOREIGN KEY (pr_id) REFERENCES Pull_Requests(pr_id) ON DELETE CASCADE,
 FOREIGN KEY (reviewer_id) REFERENCES Users(user_id) ON DELETE CASCADE
 );
+
 CREATE TABLE Issues (
 issue_id INT AUTO_INCREMENT PRIMARY KEY,
 repo_id INT,
@@ -86,6 +91,7 @@ FOREIGN KEY (repo_id) REFERENCES Repositories(repo_id) ON DELETE CASCADE,
 FOREIGN KEY (creator_id) REFERENCES Users(user_id) ON DELETE CASCADE,
 FOREIGN KEY (assignee_id) REFERENCES Users(user_id) ON DELETE SET NULL
 );
+
 CREATE TABLE Contributors (
 repo_id INT,
 user_id INT,
