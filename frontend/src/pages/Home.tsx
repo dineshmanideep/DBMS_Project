@@ -61,7 +61,7 @@ export default function Home() {
     <div className="min-h-screen bg-gray-900 text-gray-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold text-white">Your Repositories</h1>
+          <h1 className="text-3xl font-bold text-white">All Repositories</h1>
           <button
             onClick={() => setIsModalOpen(true)}
             className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 transition-colors"

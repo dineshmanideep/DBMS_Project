@@ -1,5 +1,5 @@
 import { authenticateToken } from "../middleware/authMiddleware.js";
-import { fetchAllFiles,createFile } from "../controller/fileController.js";
+import { fetchAllFiles,createFile,updateFile,fetchFileByName } from "../controller/fileController.js";
 import multer from 'multer';
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
@@ -13,5 +13,19 @@ router.post(
     upload.single('file'), // this handles the incoming file
     createFile
   );
+
+
+  router.get(
+    '/get/:creator_id/:repo_name/:branch_name/:file_name',
+    authenticateToken,
+    fetchFileByName
+  );
+  
+  router.put(
+    '/update/:creator_id/:repo_name/:branch_name/:file_name',
+    authenticateToken,
+    updateFile
+  );
+  
   
 export default router;

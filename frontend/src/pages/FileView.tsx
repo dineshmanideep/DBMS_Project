@@ -1,75 +1,39 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { History, Download, Edit, MessageSquare, Clock, ChevronLeft, Share2, Clipboard, Check } from 'lucide-react';
+import { History, Download, Edit, MessageSquare, Clock, ChevronLeft, Share2, Clipboard, Check, Save } from 'lucide-react';
 import SkeletonLoader from '../components/SkeletonLoader';
+import { BASE_URL } from '../context/AuthContext';
 
 export default function FileView() {
-  const { username, repo_id, branch, file_name } = useParams();
+  const { creator_id, repo_name, branch_name, file_name } = useParams();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
+  const [fileContent, setFileContent] = useState('');
+  const [originalContent, setOriginalContent] = useState('');
   const [showHistory, setShowHistory] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [commitMessage, setCommitMessage] = useState('');
+  const [copied, setCopied] = useState(false);
+  const [comments, setComments] = useState([]);
   const [showCommentForm, setShowCommentForm] = useState(false);
   const [newComment, setNewComment] = useState('');
-  const [copied, setCopied] = useState(false);
 
-  // Mock file content - replace with API call
-  const fileContent = `import React from 'react';
-
-export default function Example() {
-  return (
-    <div className="container">
-      <h1>Hello, World!</h1>
-      <p>This is an example file content.</p>
-    </div>
-  );
-}`;
-
-  // Mock comments - replace with API call
-  const [comments, setComments] = useState([
-    {
-      id: 1,
-      author: 'johndoe',
-      avatar: 'https://github.com/ghost.png',
-      content: 'We should add more documentation here.',
-      date: '2 days ago',
-    },
-    {
-      id: 2,
-      author: 'janedoe',
-      avatar: 'https://github.com/ghost.png',
-      content: 'I agree, especially for the component props.',
-      date: '1 day ago',
-    },
-  ]);
-
-  // Simulate loading data
   useEffect(() => {
-    setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-    }, 800);
-  }, [file_name, branch]);
+    fetchFileContent();
+  }, [file_name, branch_name]);
 
-  const handleAddComment = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (newComment.trim()) {
-      setComments([
-        ...comments,
-        {
-          id: comments.length + 1,
-          author: 'currentuser', // Replace with actual user
-          avatar: 'https://github.com/ghost.png',
-          content: newComment,
-          date: 'Just now',
-        },
-      ]);
-      setNewComment('');
-      setShowCommentForm(false);
-    }
+  const fetchFileContent = async () => {
+    setLoading(true);
+    const response = await fetch(`${BASE_URL}/file/get/${creator_id}/${repo_name}/${branch_name}/${file_name}`, {
+      credentials: 'include'
+    });
+    const data = await response.json();
+    setFileContent(data.content);
+    setOriginalContent(data.content);
+    setLoading(false);
   };
 
   const handleDownload = () => {
-    // Implementation for file download
     const element = document.createElement('a');
     const file = new Blob([fileContent], { type: 'text/plain' });
     element.href = URL.createObjectURL(file);
@@ -85,6 +49,48 @@ export default function Example() {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const handleSaveChanges = async () => {
+    const response = await fetch(`${BASE_URL}/file/update/${creator_id}/${repo_name}/${branch_name}/${file_name}`, {
+      method: 'PUT',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        content: fileContent,
+        commit_message: commitMessage || `Updated ${file_name}`
+      })
+    });
+
+    const result = await response.json();
+    if (response.ok) {
+      setOriginalContent(fileContent);
+      setIsEditing(false);
+      setCommitMessage('');
+      console.log("Saved successfully:", result);
+    } else {
+      alert("Failed to save: " + result.error);
+    }
+  };
+
+  // const handleAddComment = (e: React.FormEvent) => {
+  //   e.preventDefault();
+  //   if (newComment.trim()) {
+  //     setComments([
+  //       ...comments,
+  //       {
+  //         id: comments.length + 1,
+  //         author: 'currentuser',
+  //         avatar: 'https://github.com/ghost.png',
+  //         content: newComment,
+  //         date: 'Just now',
+  //       },
+  //     ]);
+  //     setNewComment('');
+  //     setShowCommentForm(false);
+  //   }
+  // };
+
   return (
     <div className="min-h-screen bg-gray-900 text-gray-100">
       <div className="max-w-6xl mx-auto px-4 py-8">
@@ -92,92 +98,100 @@ export default function Example() {
           <SkeletonLoader type="code" />
         ) : (
           <>
-            {/* File navigation */}
             <div className="mb-4">
               <button
-                onClick={() => navigate(`/${username}/${repo_id}/${branch}`)}
+                onClick={() => navigate(`/${creator_id}/${repo_name}/${branch_name}`)}
                 className="flex items-center text-indigo-400 hover:text-indigo-300 transition-colors"
               >
                 <ChevronLeft size={16} className="mr-1" />
                 <span>Back to repository</span>
               </button>
             </div>
-            
+
             <div className="bg-gray-800 rounded-lg shadow-lg overflow-hidden mb-6">
               <div className="flex flex-col md:flex-row md:items-center justify-between p-4 border-b border-gray-700">
                 <h1 className="text-xl font-semibold mb-2 md:mb-0">{file_name}</h1>
                 <div className="flex flex-wrap gap-2">
-                  <button
-                    onClick={() => setShowHistory(!showHistory)}
-                    className="flex items-center space-x-1 px-3 py-1 bg-gray-700 rounded-md hover:bg-gray-600 transition-all"
-                  >
-                    <History size={16} />
-                    <span>History</span>
+                  <button onClick={() => setShowHistory(!showHistory)} className="flex items-center px-3 py-1 bg-gray-700 rounded-md hover:bg-gray-600">
+                    <History size={16} /><span className="ml-1">History</span>
                   </button>
-                  <button
-                    onClick={handleDownload}
-                    className="flex items-center space-x-1 px-3 py-1 bg-gray-700 rounded-md hover:bg-gray-600 transition-all"
-                  >
-                    <Download size={16} />
-                    <span>Download</span>
+                  <button onClick={handleDownload} className="flex items-center px-3 py-1 bg-gray-700 rounded-md hover:bg-gray-600">
+                    <Download size={16} /><span className="ml-1">Download</span>
                   </button>
-                  <button
-                    onClick={handleCopyCode}
-                    className="flex items-center space-x-1 px-3 py-1 bg-gray-700 rounded-md hover:bg-gray-600 transition-all"
-                  >
+                  <button onClick={handleCopyCode} className="flex items-center px-3 py-1 bg-gray-700 rounded-md hover:bg-gray-600">
                     {copied ? <Check size={16} /> : <Clipboard size={16} />}
-                    <span>{copied ? 'Copied!' : 'Copy'}</span>
+                    <span className="ml-1">{copied ? 'Copied!' : 'Copy'}</span>
                   </button>
-                  <button
-                    className="flex items-center space-x-1 px-3 py-1 bg-indigo-600 rounded-md hover:bg-indigo-700 transition-all"
-                  >
-                    <Edit size={16} />
-                    <span>Edit</span>
-                  </button>
+                  {!isEditing ? (
+                    <button onClick={() => setIsEditing(true)} className="flex items-center px-3 py-1 bg-indigo-600 rounded-md hover:bg-indigo-700">
+                      <Edit size={16} /><span className="ml-1">Edit</span>
+                    </button>
+                  ) : (
+                    <button onClick={handleSaveChanges} className="flex items-center px-3 py-1 bg-green-600 rounded-md hover:bg-green-700">
+                      <Save size={16} /><span className="ml-1">Save</span>
+                    </button>
+                  )}
                 </div>
               </div>
 
-              {/* File content with line numbers and syntax highlighting */}
-              <div className="relative overflow-hidden">
-                <div className="p-0 overflow-x-auto">
-                  <table className="w-full text-left">
-                    <tbody>
-                      {fileContent.split('\n').map((line, index) => (
-                        <tr key={index} className="hover:bg-gray-750">
-                          <td className="py-0.5 px-4 text-gray-500 select-none text-right border-r border-gray-700 bg-gray-850 w-10">
-                            {index + 1}
-                          </td>
-                          <td className="py-0.5 px-4 font-mono whitespace-pre">
-                            {line || ' '}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+              <div className="p-4 border-b border-gray-700">
+                {isEditing ? (
+                  <>
+                    <textarea
+                      className="w-full h-72 p-3 font-mono text-sm bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      value={fileContent}
+                      onChange={(e) => setFileContent(e.target.value)}
+                    />
+                    <input
+                      type="text"
+                      className="mt-2 w-full p-2 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      placeholder="Commit message"
+                      value={commitMessage}
+                      onChange={(e) => setCommitMessage(e.target.value)}
+                    />
+                  </>
+                ) : (
+                  <div className="relative overflow-hidden">
+                    <div className="p-0 overflow-x-auto">
+                      <table className="w-full text-left">
+                        <tbody>
+                          {fileContent.split('\n').map((line, index) => (
+                            <tr key={index} className="hover:bg-gray-750">
+                              <td className="py-0.5 px-4 text-gray-500 select-none text-right border-r border-gray-700 bg-gray-850 w-10">
+                                {index + 1}
+                              </td>
+                              <td className="py-0.5 px-4 font-mono whitespace-pre-wrap">{line || ' '}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
-            {/* Comments section */}
+            {/* Comments section (same as before) */}
             <div className="bg-gray-800 rounded-lg shadow-lg overflow-hidden">
               <div className="p-4 border-b border-gray-700 flex justify-between items-center">
                 <h2 className="text-lg font-semibold">Comments ({comments.length})</h2>
                 <button
                   onClick={() => setShowCommentForm(!showCommentForm)}
-                  className="flex items-center space-x-1 px-3 py-1 bg-indigo-600 rounded-md hover:bg-indigo-700 transition-all"
+                  className="flex items-center px-3 py-1 bg-indigo-600 rounded-md hover:bg-indigo-700"
                 >
-                  <MessageSquare size={16} />
-                  <span>{showCommentForm ? 'Cancel' : 'Add comment'}</span>
+                  <MessageSquare size={16} /><span className="ml-1">{showCommentForm ? 'Cancel' : 'Add comment'}</span>
                 </button>
               </div>
-              
+
               {showCommentForm && (
                 <div className="p-4 border-b border-gray-700">
-                  <form onSubmit={handleAddComment}>
+                  <form 
+                  // onSubmit={handleAddComment}
+                  >
                     <textarea
                       value={newComment}
                       onChange={(e) => setNewComment(e.target.value)}
-                      className="w-full p-3 bg-gray-700 border border-gray-600 rounded-md text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full p-3 bg-gray-700 border border-gray-600 rounded-md text-white placeholder-gray-400"
                       placeholder="Write a comment..."
                       rows={3}
                     ></textarea>
@@ -185,13 +199,13 @@ export default function Example() {
                       <button
                         type="button"
                         onClick={() => setShowCommentForm(false)}
-                        className="px-4 py-2 border border-gray-600 rounded-md text-sm font-medium text-gray-300 hover:bg-gray-700 transition-all"
+                        className="px-4 py-2 border border-gray-600 rounded-md text-sm text-gray-300 hover:bg-gray-700"
                       >
                         Cancel
                       </button>
                       <button
                         type="submit"
-                        className="px-4 py-2 bg-indigo-600 border border-transparent rounded-md text-sm font-medium text-white hover:bg-indigo-700 transition-all"
+                        className="px-4 py-2 bg-indigo-600 border border-transparent rounded-md text-sm text-white hover:bg-indigo-700"
                       >
                         Submit
                       </button>
@@ -199,17 +213,13 @@ export default function Example() {
                   </form>
                 </div>
               )}
-              
-              <div className="divide-y divide-gray-700">
+
+              {/* <div className="divide-y divide-gray-700">
                 {comments.length > 0 ? (
                   comments.map((comment) => (
                     <div key={comment.id} className="p-4 hover:bg-gray-750">
                       <div className="flex items-start">
-                        <img 
-                          src={comment.avatar} 
-                          alt={`${comment.author}'s avatar`} 
-                          className="h-10 w-10 rounded-full mr-4"
-                        />
+                        <img src={comment.avatar} alt="avatar" className="h-10 w-10 rounded-full mr-4" />
                         <div className="flex-1">
                           <div className="flex items-center mb-2">
                             <div className="font-medium text-indigo-400">{comment.author}</div>
@@ -218,9 +228,7 @@ export default function Example() {
                               {comment.date}
                             </div>
                           </div>
-                          <div className="text-gray-300 prose prose-invert">
-                            {comment.content}
-                          </div>
+                          <div className="text-gray-300">{comment.content}</div>
                         </div>
                       </div>
                     </div>
@@ -231,7 +239,7 @@ export default function Example() {
                     <p>No comments yet. Be the first to share your thoughts!</p>
                   </div>
                 )}
-              </div>
+              </div> */}
             </div>
           </>
         )}

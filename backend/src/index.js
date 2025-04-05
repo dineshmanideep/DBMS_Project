@@ -24,18 +24,30 @@ app.use(express.json());
 app.use(cookieParser());
 
 // Test database connection
+// sequelize.authenticate()
+//   .then(() => {
+//     console.log('Database connection established successfully.');
+//     // Sync all models (optional if you're using manual SQL schema)
+//     return sequelize.sync();
+//   })
+//   .then(() => {
+//     console.log('Database models synchronized.');
+//   })
+//   .catch(err => {
+//     console.error('Unable to connect to the database:', err);
+//   });
+
+// Test database connection
 sequelize.authenticate()
   .then(() => {
     console.log('Database connection established successfully.');
-    // Sync all models (optional if you're using manual SQL schema)
-    return sequelize.sync();
-  })
-  .then(() => {
-    console.log('Database models synchronized.');
+    // Do NOT sync if using manual schema
+    // return sequelize.sync();
   })
   .catch(err => {
     console.error('Unable to connect to the database:', err);
   });
+
 
 // API routes
 app.use('/', authRoutes);
