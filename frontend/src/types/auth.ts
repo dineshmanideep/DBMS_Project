@@ -1,6 +1,3 @@
-//what about the avatar
-//what about the bio
-// we have registration_date instead of createdAt
 export interface User {
   id: string;
   username: string;
@@ -8,7 +5,7 @@ export interface User {
   full_name?: string;
   avatar?: string;
   bio?: string;
-  registration_date: string;
+  createdAt: string;
 }
 
 export interface AuthState {

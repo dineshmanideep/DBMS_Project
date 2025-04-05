@@ -27,13 +27,10 @@ export interface Branch {
   base_commit_id: number | null;
 }
 
-//repo id missing
-//why email
-// why username
 export interface Contributor {
   user_id: number;
-  username?: string;
-  email?: string;
+  username: string;
+  email: string;
   role: 'Admin' | 'Contributor';
   avatar?: string;
 }

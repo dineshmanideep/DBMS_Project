@@ -36,28 +36,28 @@ export default function BranchList() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-900 text-gray-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="bg-white shadow-sm rounded-lg">
-          <div className="px-4 py-5 border-b border-gray-200 sm:px-6">
+        <div className="bg-gray-800 rounded-lg shadow-lg border border-gray-700 overflow-hidden">
+          <div className="px-4 py-5 border-b border-gray-700 sm:px-6">
             <div className="flex items-center">
-              <GitBranch className="h-6 w-6 text-gray-400" />
-              <h2 className="ml-3 text-lg font-medium text-gray-900">Branches</h2>
+              <GitBranch className="h-6 w-6 text-indigo-400" />
+              <h2 className="ml-3 text-lg font-medium text-white">Branches</h2>
             </div>
           </div>
 
-          <div className="divide-y divide-gray-200">
+          <div className="divide-y divide-gray-700">
             {branches.map((branch) => (
               <div
                 key={branch.name}
-                className="px-4 py-4 hover:bg-gray-50 sm:px-6"
+                className="px-4 py-4 hover:bg-gray-750 transition-colors sm:px-6"
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
-                    <GitBranch className="h-5 w-5 text-gray-400" />
+                    <GitBranch className="h-5 w-5 text-indigo-400" />
                     <button
                       onClick={() => navigate(`/${username}/${repo_id}/${branch.name}`)}
-                      className="ml-3 text-sm font-medium text-indigo-600 hover:text-indigo-900"
+                      className="ml-3 text-sm font-medium text-indigo-400 hover:text-indigo-300 transition-colors"
                     >
                       {branch.name}
                     </button>
@@ -65,7 +65,7 @@ export default function BranchList() {
                   {branch.name !== 'main' && (
                     <button
                       onClick={() => navigate(`/${username}/${repo_id}/${branch.name}/pull-request`)}
-                      className="ml-4 px-3 py-1 text-sm text-indigo-600 hover:text-indigo-900 border border-indigo-600 rounded-md"
+                      className="ml-4 px-3 py-1 text-sm text-indigo-400 hover:text-indigo-300 border border-indigo-700 rounded-md transition-colors"
                     >
                       Create Pull Request
                     </button>
@@ -73,13 +73,13 @@ export default function BranchList() {
                 </div>
                 <div className="mt-2 sm:flex sm:justify-between">
                   <div className="sm:flex">
-                    <div className="flex items-center text-sm text-gray-500">
-                      <GitCommit className="flex-shrink-0 mr-1.5 h-4 w-4 text-gray-400" />
+                    <div className="flex items-center text-sm text-gray-400">
+                      <GitCommit className="flex-shrink-0 mr-1.5 h-4 w-4 text-gray-500" />
                       {branch.lastCommit}
                     </div>
                   </div>
-                  <div className="mt-2 flex items-center text-sm text-gray-500 sm:mt-0">
-                    <Clock className="flex-shrink-0 mr-1.5 h-4 w-4 text-gray-400" />
+                  <div className="mt-2 flex items-center text-sm text-gray-400 sm:mt-0">
+                    <Clock className="flex-shrink-0 mr-1.5 h-4 w-4 text-gray-500" />
                     <p>
                       Updated {branch.lastCommitDate} by {branch.author}
                     </p>

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { GitPullRequest, Check, X, MessageSquare, GitCommit } from 'lucide-react';
+import { GitPullRequest, Check, X, MessageSquare, GitCommit, Clock, User } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 interface PullRequest {
@@ -23,6 +23,7 @@ export default function PullRequest() {
     title: '',
     description: '',
   });
+  const [loading, setLoading] = useState(false);
 
   // Mock pull requests data
   const pullRequests: PullRequest[] = [
@@ -50,33 +51,41 @@ export default function PullRequest() {
 
   const handleCreatePR = (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Implement create pull request
-    setShowCreateForm(false);
-    setFormData({ title: '', description: '' });
+    setLoading(true);
+    
+    // Mock API call
+    setTimeout(() => {
+      setLoading(false);
+      setShowCreateForm(false);
+      setFormData({ title: '', description: '' });
+      // In a real app, you'd add the new PR to the list
+    }, 1000);
   };
 
   const handleMergePR = (prId: number) => {
-    // TODO: Implement merge pull request
+    // Implementation for merge PR
+    console.log(`Merging PR #${prId}`);
   };
 
   const handleClosePR = (prId: number) => {
-    // TODO: Implement close pull request
+    // Implementation for close PR
+    console.log(`Closing PR #${prId}`);
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-900 text-gray-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
-        <div className="bg-white shadow-sm rounded-lg p-6 mb-8">
+        <div className="bg-gray-800 rounded-lg shadow-lg p-6 mb-8 border border-gray-700">
           <div className="flex items-center justify-between">
             <div className="flex items-center">
-              <GitPullRequest className="h-6 w-6 text-gray-400" />
-              <h1 className="ml-3 text-2xl font-bold text-gray-900">Pull Requests</h1>
+              <GitPullRequest className="h-6 w-6 text-indigo-400" />
+              <h1 className="ml-3 text-2xl font-bold text-white">Pull Requests</h1>
             </div>
             {branch_name !== 'main' && (
               <button
                 onClick={() => setShowCreateForm(true)}
-                className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
+                className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 transition-colors"
               >
                 <GitPullRequest className="h-4 w-4 mr-2" />
                 Create Pull Request
@@ -87,13 +96,13 @@ export default function PullRequest() {
 
         {/* Create PR Form */}
         {showCreateForm && (
-          <div className="bg-white shadow-sm rounded-lg mb-8">
+          <div className="bg-gray-800 rounded-lg shadow-lg mb-8 border border-gray-700">
             <div className="p-6">
-              <h2 className="text-lg font-medium text-gray-900 mb-4">Create Pull Request</h2>
+              <h2 className="text-lg font-medium text-white mb-4">Create Pull Request</h2>
               <form onSubmit={handleCreatePR}>
                 <div className="space-y-4">
                   <div>
-                    <label htmlFor="title" className="block text-sm font-medium text-gray-700">
+                    <label htmlFor="title" className="block text-sm font-medium text-gray-300">
                       Title
                     </label>
                     <input
@@ -101,11 +110,12 @@ export default function PullRequest() {
                       id="title"
                       value={formData.title}
                       onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                      className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                      className="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm text-white"
+                      placeholder="Pull request title"
                     />
                   </div>
                   <div>
-                    <label htmlFor="description" className="block text-sm font-medium text-gray-700">
+                    <label htmlFor="description" className="block text-sm font-medium text-gray-300">
                       Description
                     </label>
                     <textarea
@@ -113,22 +123,24 @@ export default function PullRequest() {
                       rows={4}
                       value={formData.description}
                       onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                      className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                      className="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm text-white"
+                      placeholder="Describe your changes"
                     />
                   </div>
                   <div className="flex justify-end space-x-3">
                     <button
                       type="button"
                       onClick={() => setShowCreateForm(false)}
-                      className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
+                      className="px-4 py-2 border border-gray-600 rounded-md text-sm font-medium text-gray-300 hover:bg-gray-700 transition-colors"
                     >
                       Cancel
                     </button>
                     <button
                       type="submit"
-                      className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
+                      disabled={loading}
+                      className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 transition-colors disabled:opacity-50"
                     >
-                      Create
+                      {loading ? 'Creating...' : 'Create'}
                     </button>
                   </div>
                 </div>
@@ -138,24 +150,30 @@ export default function PullRequest() {
         )}
 
         {/* Pull Requests List */}
-        <div className="bg-white shadow-sm rounded-lg">
-          <div className="divide-y divide-gray-200">
+        <div className="bg-gray-800 rounded-lg shadow-lg border border-gray-700 overflow-hidden">
+          <div className="divide-y divide-gray-700">
             {pullRequests.map((pr) => (
-              <div key={pr.id} className="p-6">
+              <div key={pr.id} className="p-6 hover:bg-gray-750 transition-colors">
                 <div className="flex items-start justify-between">
                   <div>
-                    <h3 className="text-lg font-medium text-gray-900">{pr.title}</h3>
-                    <p className="mt-1 text-sm text-gray-500">{pr.description}</p>
-                    <div className="mt-2 flex items-center space-x-4 text-sm text-gray-500">
+                    <h3 className="text-lg font-medium text-white">{pr.title}</h3>
+                    <p className="mt-1 text-sm text-gray-400">{pr.description}</p>
+                    <div className="mt-2 flex items-center flex-wrap gap-x-4 gap-y-1 text-sm text-gray-400">
                       <span>#{pr.id}</span>
-                      <span>by {pr.author}</span>
-                      <span>{pr.createdAt}</span>
                       <span className="flex items-center">
-                        <GitCommit className="h-4 w-4 mr-1" />
+                        <User size={14} className="mr-1" />
+                        {pr.author}
+                      </span>
+                      <span className="flex items-center">
+                        <Clock size={14} className="mr-1" />
+                        {pr.createdAt}
+                      </span>
+                      <span className="flex items-center">
+                        <GitCommit size={14} className="mr-1" />
                         {pr.commits} commits
                       </span>
                       <span className="flex items-center">
-                        <MessageSquare className="h-4 w-4 mr-1" />
+                        <MessageSquare size={14} className="mr-1" />
                         {pr.comments} comments
                       </span>
                     </div>
@@ -165,14 +183,14 @@ export default function PullRequest() {
                       <>
                         <button
                           onClick={() => handleMergePR(pr.id)}
-                          className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700"
+                          className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-white bg-green-700 hover:bg-green-600 transition-colors"
                         >
                           <Check className="h-4 w-4 mr-1" />
                           Merge
                         </button>
                         <button
                           onClick={() => handleClosePR(pr.id)}
-                          className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700"
+                          className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-white bg-red-700 hover:bg-red-600 transition-colors"
                         >
                           <X className="h-4 w-4 mr-1" />
                           Close
@@ -182,10 +200,10 @@ export default function PullRequest() {
                     <span
                       className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                         pr.status === 'Open'
-                          ? 'bg-green-100 text-green-800'
+                          ? 'bg-green-900 text-green-300'
                           : pr.status === 'Merged'
-                          ? 'bg-purple-100 text-purple-800'
-                          : 'bg-red-100 text-red-800'
+                          ? 'bg-purple-900 text-purple-300'
+                          : 'bg-red-900 text-red-300'
                       }`}
                     >
                       {pr.status}
@@ -194,6 +212,14 @@ export default function PullRequest() {
                 </div>
               </div>
             ))}
+            
+            {pullRequests.length === 0 && (
+              <div className="p-8 text-center text-gray-500">
+                <GitPullRequest size={48} className="mx-auto mb-4 opacity-50" />
+                <p className="text-lg font-medium">No pull requests yet</p>
+                <p className="mt-1">Create a new branch and submit a pull request to start collaborating</p>
+              </div>
+            )}
           </div>
         </div>
       </div>
