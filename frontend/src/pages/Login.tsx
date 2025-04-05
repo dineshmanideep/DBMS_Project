@@ -7,7 +7,7 @@ import { FaGithub } from 'react-icons/fa';
 
 export default function Login() {
   const navigate = useNavigate();
-  const { login, isAuthenticated } = useAuth();
+  const { login,user } = useAuth();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -18,10 +18,10 @@ export default function Login() {
 
   useEffect(() => {
     // Redirect if already authenticated
-    if (isAuthenticated) {
+    if (!!user) {
       navigate('/');
     }
-  }, [isAuthenticated, navigate]);
+  }, [user]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

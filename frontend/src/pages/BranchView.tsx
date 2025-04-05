@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { File, Folder, GitBranch, Plus, GitCommit, Clock } from 'lucide-react';
+import { File as File_image, Folder, GitBranch, Plus, GitCommit, Clock } from 'lucide-react';
+import { File } from '../types/repository';
 
 interface FileItem {
   name: string;
@@ -19,6 +20,7 @@ interface Commit {
 export default function BranchView() {
   const { username, repo_id, branch_name } = useParams();
   const navigate = useNavigate();
+  const [Files, setFiles] = useState<File[]|null>(null)
   const [showCommits, setShowCommits] = useState(false);
 
   // Mock files data
@@ -117,7 +119,7 @@ export default function BranchView() {
                     {file.type === 'folder' ? (
                       <Folder className="h-5 w-5 text-indigo-400 mr-3" />
                     ) : (
-                      <File className="h-5 w-5 text-gray-400 mr-3" />
+                      <File_image className="h-5 w-5 text-gray-400 mr-3" />
                     )}
                     <div>
                       <button

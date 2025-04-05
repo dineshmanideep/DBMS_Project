@@ -5,6 +5,8 @@ export interface Repository {
   description: string;
   visibility: 'Public' | 'Private';
   creation_date: string;
+  stars?: number ;
+  forks?: number;
 }
 
 export interface File {

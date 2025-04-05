@@ -5,9 +5,10 @@ import { UserPlus, Mail, Lock, User, AlertCircle } from 'lucide-react';
 import { FaGithub } from 'react-icons/fa';
 export default function Signup() {
   const navigate = useNavigate();
-  const { signup, isAuthenticated } = useAuth();
+  const { signup, user } = useAuth();
   const [formData, setFormData] = useState({
     username: '',
+    full_name:'',
     email: '',
     password: '',
     confirmPassword: '',
@@ -17,10 +18,12 @@ export default function Signup() {
 
   useEffect(() => {
     // Redirect if already authenticated
-    if (isAuthenticated) {
+    if (!!user) {
+        //  console.log("user",user);
       navigate('/');
     }
-  }, [isAuthenticated, navigate]);
+    //reload once the user gets updated
+  }, [user]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,7 +37,7 @@ export default function Signup() {
     }
 
     try {
-      await signup(formData.username, formData.email, formData.password);
+      await signup(formData.username,formData.full_name, formData.email, formData.password);
       navigate('/');
     } catch (err) {
       setError('Failed to create account');
@@ -75,6 +78,27 @@ export default function Signup() {
                   placeholder="Choose a username"
                   value={formData.username}
                   onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                />
+              </div>
+            </div>
+
+            <div>
+              <label htmlFor="full_name" className="block text-sm font-medium text-gray-300 mb-1">
+                Full Name
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <User size={18} className="text-gray-500" />
+                </div>
+                <input
+                  id="full_name"
+                  name="full_name"
+                  type="text"
+                  required
+                  className="appearance-none block w-full pl-10 px-3 py-3 border border-gray-700 placeholder-gray-500 text-white bg-gray-800 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+                  placeholder="Full Name"
+                  value={formData.full_name}
+                  onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
                 />
               </div>
             </div>

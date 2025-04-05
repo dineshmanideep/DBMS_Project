@@ -41,7 +41,7 @@ export const repositoryController = {
       });
 
      // when you do .json automatically the repository metadata is removed
-      res.status(201).json(repository);
+      res.status(201).json({message:"true",data:repository});
       // res.status(201).json({message:"done"});
     } catch (error) {
       res.status(500).json({ error: error.message });
@@ -56,7 +56,7 @@ export const repositoryController = {
         visibility:'Public'
        }
       });
-      res.json(repositories);
+      res.json({message:"true",data:repositories});
     } catch (error) {
       res.status(500).json({ error: error.message });
     }
@@ -71,7 +71,7 @@ export const repositoryController = {
       if (!repository) {
         return res.status(404).json({ message: 'Repository not found' });
       }
-      res.json(repository);
+      res.json({message:"true",data:repository});
     } catch (error) {
       res.status(500).json({ error: error.message });
     }
@@ -86,7 +86,7 @@ export const repositoryController = {
         return res.status(404).json({ message: 'Repository not found' });
       }
       await repository.update({ name, description });
-      res.json(repository);
+      res.json({message:"true",data:repository});
     } catch (error) {
       res.status(500).json({ error: error.message });
     }
@@ -100,7 +100,7 @@ export const repositoryController = {
         return res.status(404).json({ message: 'Repository not found' });
       }
       await repository.destroy();
-      res.status(204).send();
+      res.status(204).send({message:'deleted succesfully'});
     } catch (error) {
       res.status(500).json({ error: error.message });
     }

@@ -1,12 +1,17 @@
-import React from 'react';
+import React,{useEffect} from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Search, Bell, User, LogOut, Plus, ChevronDown } from 'lucide-react';
 import ThemeToggle from './ThemeToggle';
 
 export default function Header() {
-  const { user, logout } = useAuth();
+  const { user, logout,getCurrentUser } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    getCurrentUser();
+  }, [navigate])
+  
 
   return (
     <header className="bg-gray-800 border-b border-gray-700">
@@ -16,7 +21,13 @@ export default function Header() {
             <Link to="/" className="text-white font-bold text-xl">
               Code Collaboration
             </Link>
-            <div className="ml-10 hidden md:block">
+            {/* when user is not logged in */}
+            {/* !!data= true
+                 !!null =false 
+                  */}
+
+            {!!user?(<>
+              <div className="ml-10 hidden md:block">
               <div className="flex items-center space-x-4">
                 <Link to="/explore" className="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium">
                   Explore
@@ -27,8 +38,27 @@ export default function Header() {
                 <Link to="/issues" className="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium">
                   Issues
                 </Link>
+                <button onClick={()=>logout()} className="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium">
+                  logout
+                </button>
               </div>
-            </div>
+            </div></>):
+            (<>
+              <div className="ml-10 hidden md:block">
+              <div className="flex items-center space-x-4">
+                <Link to="/signup" className="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium">
+                  Signup
+                </Link>
+                <Link to="/login" className="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium">
+                  Login
+                </Link>
+                
+              </div>
+            </div></>)
+            }
+
+           
+           
           </div>
 
           <div className="flex-1 max-w-md mx-4">

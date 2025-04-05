@@ -1,68 +1,125 @@
-import React, { createContext, useState, useContext, useCallback, useEffect } from 'react';
-import { User, AuthState } from '../types/auth';
+import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import { User } from '../types/auth';
 
-interface AuthContextType extends AuthState {
+interface AuthContextType {
+  user: User | null;
+  loading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  signup: (username: string, email: string, password: string) => Promise<void>;
+  signup: (username: string, full_name: string, email: string, password: string) => Promise<void>;
   logout: () => void;
+  getCurrentUser: () => Promise<void>;
   theme: 'dark' | 'light';
   toggleTheme: () => void;
 }
 
+export const BASE_URL = 'http://localhost:3000';
+
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [state, setState] = useState<AuthState>({
-    user: null,
-    isAuthenticated: false,
-    loading: true,
-  });
-  
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+
   const [theme, setTheme] = useState<'dark' | 'light'>(() => {
-    // Always default to dark mode
-    document.documentElement.classList.add('dark');
+    document.documentElement.classList.add('dark'); // default to dark
     return 'dark';
   });
 
-  // Save theme preference when it changes
   useEffect(() => {
-    // Remove both classes first
     document.documentElement.classList.remove('dark', 'light');
-    // Add the current theme class
     document.documentElement.classList.add(theme);
-    // Save to localStorage
     localStorage.setItem('theme', theme);
   }, [theme]);
 
   const toggleTheme = useCallback(() => {
-    setTheme(prevTheme => {
-      const newTheme = prevTheme === 'dark' ? 'light' : 'dark';
-      return newTheme;
-    });
+    setTheme(prev => (prev === 'dark' ? 'light' : 'dark'));
   }, []);
 
-  // Your existing auth functions
-  const login = async (email: string, password: string) => {
-    // Implementation
-  };
+  const login = useCallback(async (email: string, password: string) => {
+    setLoading(true);
+    try {
+      const res = await fetch(`${BASE_URL}/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ email, password }),
+      });
+      const data = await res.json();
+      console.log('from login', data);
+      if (res.ok) {
+        setUser(data.user);
+      } else {
+        throw new Error(data.message || 'Login failed');
+      }
+    } catch (err) {
+      console.error('Login error:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
-  const signup = async (username: string, email: string, password: string) => {
-    // Implementation
-  };
+  const signup = useCallback(async (username: string, full_name: string, email: string, password: string) => {
+    setLoading(true);
+    try {
+      const res = await fetch(`${BASE_URL}/signup`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ username, full_name, email, password }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setUser(data.user);
+      } else {
+        throw new Error(data.message || 'Signup failed');
+      }
+    } catch (err) {
+      console.error('Signup error:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
-  const logout = () => {
-    // Implementation
-  };
+  const logout = useCallback(async () => {
+    setLoading(true);
+    try {
+      await fetch(`${BASE_URL}/logout`, {
+        method: 'POST',
+        credentials: 'include',
+      });
+      setUser(null);
+    } catch (err) {
+      console.error('Logout error:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const getCurrentUser = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await fetch(`${BASE_URL}/me`, {
+        method: 'GET',
+        credentials: 'include',
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setUser(data.user);
+      console.log("get current user",data.user);
+        console.log("user getcurrent user",user)
+      } else {
+        // setUser(null);
+      }
+    } catch (err) {
+      console.error('Get current user error:', err);
+      // setUser(null);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   return (
-    <AuthContext.Provider value={{
-      ...state,
-      login,
-      signup,
-      logout,
-      theme,
-      toggleTheme
-    }}>
+    <AuthContext.Provider value={{ user, loading, login, signup, logout, getCurrentUser, theme, toggleTheme }}>
       {children}
     </AuthContext.Provider>
   );
