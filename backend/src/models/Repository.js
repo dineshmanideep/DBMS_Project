@@ -15,7 +15,7 @@ const Repository = sequelize.define('Repository', {
   description: DataTypes.TEXT,
   visibility: {
     type: DataTypes.STRING(50),
-    defaultValue: 'Public'
+    defaultValue: 'Public' //'Private'
   },
   creation_date: {
     type: DataTypes.DATE,
