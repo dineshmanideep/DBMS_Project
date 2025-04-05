@@ -6,6 +6,9 @@ import cookieParser from 'cookie-parser';
 import sequelize from './config/database.js';
 import authRoutes from './routes/authRoutes.js'; // make sure routes/index.js exists and exports a router
 import repoRoutes from './routes/repositoryRoutes.js'
+import fileRoutes from './routes/fileRoutes.js'
+import commitRoutes from './routes/commitRoutes.js'
+import branchRoutes from './routes/branchRoutes.js'
 
 dotenv.config();
 
@@ -37,6 +40,9 @@ sequelize.authenticate()
 // API routes
 app.use('/', authRoutes);
 app.use('/repo',repoRoutes)
+app.use('/branch',branchRoutes)
+app.use('/file',fileRoutes)
+app.use('/commit',commitRoutes)
 
 
 

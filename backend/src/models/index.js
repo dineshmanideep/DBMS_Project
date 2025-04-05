@@ -42,6 +42,12 @@ Issue.belongsTo(Repository, { foreignKey: 'repo_id' });
 Contributor.belongsTo(Repository, { foreignKey: 'repo_id' });
 Contributor.belongsTo(User, { foreignKey: 'user_id' });
 
+// These two are missing in your code above
+
+Branch.belongsTo(Commit, { foreignKey: 'last_commit_id', as: 'lastCommit' });
+Branch.belongsTo(Commit, { foreignKey: 'base_commit_id', as: 'baseCommit' });
+
+
 // Export all models
 export {
   User,

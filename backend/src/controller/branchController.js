@@ -1,7 +1,7 @@
 // const Branch = require('../models/Branch');
-import { Branch,Repository } from '../models/index.js';
+import { Branch,Repository,User,Commit } from '../models/index.js';
 
-const branchController = {
+export const branchController = {
   // Create a new branch
   async create(req, res) {
     try {
@@ -27,12 +27,39 @@ const branchController = {
   // Get all branches for a repository
   async getAllByRepository(req, res) {
     try {
-      const { repositoryId } = req.params;
-      const branches = await Branch.findAll({
-        where: { repositoryId },
-        include: [{ model: Repository }]
-      });
-      res.json(branches);
+      const { repo_name,  creator_id } = req.params;
+
+    // Step 1: Find the repo
+    const repo = await Repository.findOne({
+      where: {
+        repo_name: repo_name,
+        creator_id: creator_id,
+      },
+    });
+ 
+    const branches = await Branch.findAll({
+      attributes: ['branch_id', 'name'],
+      where: { repo_id: repo.repo_id },
+      include: [
+        {
+          model: User,
+          attributes: ['username'] // creator of the branch
+        },
+        {
+          model: Commit,
+          as: 'lastCommit',
+          attributes: ['commit_message', 'commit_timestamp'],
+          include: [
+            {
+              model: User,
+              attributes: ['username'], // author of the last commit
+            }
+          ]
+        }
+      ]
+    });
+    
+      res.json({message:"success",data:branches});
     } catch (error) {
       res.status(500).json({ error: error.message });
     }
@@ -83,4 +110,3 @@ const branchController = {
   }
 };
 
-module.exports = branchController;

@@ -4,7 +4,7 @@ import { Plus, GitFork, Star } from 'lucide-react';
 import { BASE_URL } from '../context/AuthContext';
 import react,{ useEffect,useState } from 'react';
 import { Repository } from '../types/repository';
-import CreateRepositoryModal from './CreateRepositoryModal';
+import CreateRepositoryModal from '../components/CreateRepositoryModal';
 
 
 //mock data

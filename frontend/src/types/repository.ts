@@ -36,3 +36,11 @@ export interface Contributor {
   role: 'Admin' | 'Contributor';
   avatar?: string;
 }
+
+export interface Commit {
+  commit_id: number;
+  commit_message: string;
+  creator_id: number;
+  commit_timestamp: string;
+  branch_id:number
+}

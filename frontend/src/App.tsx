@@ -26,13 +26,13 @@ function App() {
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
               <Route path="/profile" element={<Profile />} />
-              <Route path="/:username" element={<UserProfile />} />
-              <Route path="/:username/:repo_id" element={<Repository />} />
-              <Route path="/:username/:repo_id/settings" element={<RepositorySettings />} />
-              <Route path="/:username/:repo_id/branches" element={<BranchList />} />
-              <Route path="/:username/:repo_id/:branch" element={<BranchView />} />
-              <Route path="/:username/:repo_id/:branch/:file_name" element={<FileView />} />
-              <Route path="/:username/:repo_id/pull/:pr_id" element={<PullRequest />} />
+              <Route path="/:user_id" element={<UserProfile />} />
+              <Route path="/:creator_id/:repo_name" element={<Repository />} />
+              <Route path="/:creator_id/:repo_name/settings" element={<RepositorySettings />} />
+              <Route path="/:creator_id/:repo_name/branches" element={<BranchList />} />
+              <Route path="/:creator_id/:repo_name/:branch_name" element={<BranchView />} />
+              <Route path="/:creator_id/:repo_name/:branch_name/:file_name" element={<FileView />} />
+              <Route path="/:creator_id/:repo_name/pull/:pr_id" element={<PullRequest />} />
             </Routes>
           </main>
         </div>
