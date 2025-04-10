@@ -29,15 +29,6 @@ export default function Header() {
             {!!user?(<>
               <div className="ml-10 hidden md:block">
               <div className="flex items-center space-x-4">
-                <Link to="/explore" className="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium">
-                  Explore
-                </Link>
-                <Link to="/pulls" className="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium">
-                  Pull Requests
-                </Link>
-                <Link to="/issues" className="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium">
-                  Issues
-                </Link>
                 <button onClick={()=>logout()} className="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium">
                   logout
                 </button>
@@ -57,8 +48,6 @@ export default function Header() {
             </div></>)
             }
 
-           
-           
           </div>
 
           <div className="flex-1 max-w-md mx-4">

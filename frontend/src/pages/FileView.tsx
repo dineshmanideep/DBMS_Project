@@ -112,9 +112,13 @@ export default function FileView() {
               <div className="flex flex-col md:flex-row md:items-center justify-between p-4 border-b border-gray-700">
                 <h1 className="text-xl font-semibold mb-2 md:mb-0">{file_name}</h1>
                 <div className="flex flex-wrap gap-2">
-                  <button onClick={() => setShowHistory(!showHistory)} className="flex items-center px-3 py-1 bg-gray-700 rounded-md hover:bg-gray-600">
+                  <button
+                    onClick={() => navigate(`/${creator_id}/${repo_name}/${branch_name}/${file_name}/history`)}
+                    className="flex items-center px-3 py-1 bg-gray-700 rounded-md hover:bg-gray-600"
+                  >
                     <History size={16} /><span className="ml-1">History</span>
                   </button>
+
                   <button onClick={handleDownload} className="flex items-center px-3 py-1 bg-gray-700 rounded-md hover:bg-gray-600">
                     <Download size={16} /><span className="ml-1">Download</span>
                   </button>
@@ -185,7 +189,7 @@ export default function FileView() {
 
               {showCommentForm && (
                 <div className="p-4 border-b border-gray-700">
-                  <form 
+                  <form
                   // onSubmit={handleAddComment}
                   >
                     <textarea

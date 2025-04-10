@@ -1,10 +1,39 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { File as File_image, Folder, GitBranch, Plus, GitCommit, Clock } from 'lucide-react';
-import { Commit, File } from '../types/repository';
-import { BASE_URL } from '../context/AuthContext';
+import { File as File_image, Folder, GitBranch, Plus, GitCommit, Clock, History } from 'lucide-react';
+import { Commit, File as RepoFile } from '../types/repository';
 import { timeAgo } from '../lib/timeAlgo';
 import AddFileModal from '../components/AddFileModal';
+
+// Mock data configuration
+export const MOCK_DATA = {
+  repositories: [
+    {
+      repo_id: 1,
+      creator_id: 1,
+      repo_name: 'demo-repo',
+      description: 'A demo repository',
+      visibility: 'Public' as const,
+      creation_date: new Date().toISOString(),
+      stars: 10,
+      forks: 5,
+    },
+    // Add more mock repositories as needed
+  ],
+  branches: [
+    {
+      branch_id: 1,
+      repo_id: 1,
+      name: 'main',
+      creator_id: 1,
+      created_at: new Date().toISOString(),
+      last_commit_id: 1,
+      parent_branch_id: null,
+      base_commit_id: null,
+    },
+    // Add more mock branches as needed
+  ],
+}; 
 interface FileItem {
   file_name: string;
   file_id: number;
@@ -23,261 +52,198 @@ interface CommitItems extends Commit {
 export default function BranchView() {
   const { creator_id, repo_name, branch_name } = useParams();
   const navigate = useNavigate();
-  const [FileItems, setFileItems] = useState<FileItem[] | null>(null)
-  const [commitItems, setCommitItems] = useState<CommitItems[] | null>(null)
-  const [showCommits, setShowCommits] = useState(false);
+  const [files, setFiles] = useState<FileItem[]>([]);
+  const [commits, setCommits] = useState<CommitItems[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
   useEffect(() => {
-    fetchAllFiles();
-    fetchAllCommits();
-  }, [isModalOpen])
-
-
-  // Mock files data
-  const files: FileItem[] = [
-    {
-      name: 'src',
-      type: 'folder',
-      lastCommit: 'Update component structure',
-      lastCommitDate: '2 days ago',
-    },
-    {
-      name: 'README.md',
-      type: 'file',
-      lastCommit: 'Update documentation',
-      lastCommitDate: '5 days ago',
-    },
-    {
-      name: 'package.json',
-      type: 'file',
-      lastCommit: 'Bump dependencies',
-      lastCommitDate: '1 week ago',
-    },
-  ];
-
-  // Mock commits data
-  const commits: Commit[] = [
-    {
-      id: '1234abc',
-      message: 'Update component structure',
-      author: 'johndoe',
-      date: '2 days ago',
-    },
-    {
-      id: '5678def',
-      message: 'Fix styling issues',
-      author: 'janedoe',
-      date: '3 days ago',
-    },
-    {
-      id: '91011ghi',
-      message: 'Initial commit',
-      author: 'johndoe',
-      date: '1 week ago',
-    },
-  ];
-
-  const fetchAllFiles = async () => {
-    try {
-      const response = await fetch(`${BASE_URL}/file/all/${creator_id}/${repo_name}/${branch_name}/`, {
-        credentials: 'include'
-      });
-      const data = await response.json();
-      setFileItems(data.data);
-      console.log("files data", data);
-    } catch (error) {
-      console.log(error);
-    }
-  }
-
-  const fetchAllCommits = async () => {
-    try {
-      const response = await fetch(`${BASE_URL}/commit/all/${creator_id}/${repo_name}/${branch_name}`, {
-        credentials: 'include'
-      })
-      const data = await response.json();
-      console.log("comments_data", data);
-      setCommitItems(data.data);
-    } catch (err) {
-      console.log(err);
-    }
-  }
-
-  const handleFileSelected = async (file: File) => {
-    const formData = new FormData();
-    formData.append('file', file);
-  
-    try {
-      const response = await fetch(`${BASE_URL}/file/save/${creator_id}/${repo_name}/${branch_name}`, {
-        method: 'POST',
-       credentials:'include',
-        body: formData,
-      });
-  
-      const result = await response.json();
-      if (response.ok) {
-        console.log('Upload success:', result);
-        // You can close modal or refresh file list here
-      } else {
-        console.error('Upload failed:', result.error);
+    // Use mock data instead of fetching from backend
+    const mockFiles: FileItem[] = [
+      {
+        file_name: 'README.md',
+        file_id: 1,
+        type: 'file',
+        commit_message: 'Initial commit',
+        commit_timestamp: new Date().toISOString(),
+        commit_creator_id: 1,
+      },
+      {
+        file_name: 'index.html',
+        file_id: 2,
+        type: 'file',
+        commit_message: 'Add HTML structure',
+        commit_timestamp: new Date().toISOString(),
+        commit_creator_id: 1,
+      },
+      {
+        file_name: 'styles.css',
+        file_id: 3,
+        type: 'file',
+        commit_message: 'Add styling',
+        commit_timestamp: new Date().toISOString(),
+        commit_creator_id: 1,
+      },
+      {
+        file_name: 'script.js',
+        file_id: 4,
+        type: 'file',
+        commit_message: 'Add JavaScript functionality',
+        commit_timestamp: new Date().toISOString(),
+        commit_creator_id: 1,
+      },
+      {
+        file_name: 'package.json',
+        file_id: 5,
+        type: 'file',
+        commit_message: 'Add dependencies',
+        commit_timestamp: new Date().toISOString(),
+        commit_creator_id: 1,
+      },
+      {
+        file_name: 'tsconfig.json',
+        file_id: 6,
+        type: 'file',
+        commit_message: 'Configure TypeScript',
+        commit_timestamp: new Date().toISOString(),
+        commit_creator_id: 1,
       }
-    } catch (error) {
-      console.error('Upload error:', error);
-    }
+    ];
+
+    const mockCommits: CommitItems[] = [
+      {
+        commit_id: 1,
+        commit_message: 'Initial commit',
+        creator_id: 1,
+        commit_timestamp: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+        branch_id: 1,
+        User: {
+          username: 'demo',
+        },
+      },
+      {
+        commit_id: 2,
+        commit_message: 'Add HTML structure',
+        creator_id: 1,
+        commit_timestamp: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).toISOString(),
+        branch_id: 1,
+        User: {
+          username: 'demo',
+        },
+      },
+      {
+        commit_id: 3,
+        commit_message: 'Add styling and JavaScript',
+        creator_id: 1,
+        commit_timestamp: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+        branch_id: 1,
+        User: {
+          username: 'demo',
+        },
+      },
+      {
+        commit_id: 4,
+        commit_message: 'Configure TypeScript',
+        creator_id: 1,
+        commit_timestamp: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(),
+        branch_id: 1,
+        User: {
+          username: 'demo',
+        },
+      }
+    ];
+
+    setFiles(mockFiles);
+    setCommits(mockCommits);
+  }, [creator_id, repo_name, branch_name]);
+
+  const handleFileSelected = (file: FileItem) => {
+    navigate(`/${creator_id}/${repo_name}/${branch_name}/${file.file_name}`);
   };
-  
+
+  const handleHistoryClick = (e: React.MouseEvent, file: FileItem) => {
+    e.stopPropagation(); // Prevent file selection when clicking history
+    navigate(`/${creator_id}/${repo_name}/${branch_name}/${file.file_name}/history`);
+  };
+
+  const handleAddFile = (file: globalThis.File) => {
+    // In a real app, this would upload the file to the backend
+    console.log('File to add:', file.name);
+    setIsModalOpen(false);
+  };
 
   return (
     <div className="min-h-screen bg-gray-900 text-gray-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Branch Header */}
-        <div className="bg-gray-800 rounded-lg shadow-lg p-6 mb-8 border border-gray-700">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center">
-              <GitBranch className="h-6 w-6 text-indigo-400" />
-              <h1 className="ml-3 text-2xl font-bold text-white">{branch_name}</h1>
+        <div className="flex justify-between items-center mb-8">
+          <div>
+            <h1 className="text-3xl font-bold text-white">{repo_name}</h1>
+            <p className="text-gray-400 mt-1">Branch: {branch_name}</p>
+          </div>
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 transition-colors"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Add File
+          </button>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2">
+            <div className="bg-gray-800 rounded-lg shadow-lg border border-gray-700 p-6">
+              <h2 className="text-xl font-semibold mb-4">Files</h2>
+              <div className="space-y-2">
+                {files.map((file) => (
+                  <div
+                    key={file.file_id}
+                    onClick={() => handleFileSelected(file)}
+                    className="flex items-center justify-between p-2 hover:bg-gray-700 rounded cursor-pointer"
+                  >
+                    <div className="flex items-center">
+                      <File_image className="h-5 w-5 mr-2 text-gray-400" />
+                      <span>{file.file_name}</span>
+                    </div>
+                    <button
+                      onClick={(e) => handleHistoryClick(e, file)}
+                      className="p-1 hover:bg-gray-600 rounded-full"
+                      title="View History"
+                    >
+                      <History className="h-4 w-4 text-gray-400" />
+                    </button>
+                  </div>
+                ))}
+              </div>
             </div>
-            <div className="flex items-center">
-              <button onClick={()=>navigate(`/${creator_id}/${repo_name}/branches`)}>
-                show all
-              </button>
-            </div>
-            <div className="flex space-x-4">
-              <button
-                onClick={() => setShowCommits(!showCommits)}
-                className="px-4 py-2 border border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-300 bg-gray-700 hover:bg-gray-600 transition-colors"
-              >
-                {showCommits ? 'Show Files' : 'Show Commits'}
-              </button>
-              {branch_name !== 'main' && (
-                <button
-                  onClick={() => navigate(`/${username}/${repo_id}/${branch_name}/pull-request`)}
-                  className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 transition-colors"
-                >
-                  Create Pull Request
-                </button>
-              )}
+          </div>
+
+          <div>
+            <div className="bg-gray-800 rounded-lg shadow-lg border border-gray-700 p-6">
+              <h2 className="text-xl font-semibold mb-4">Recent Commits</h2>
+              <div className="space-y-4">
+                {commits.map((commit) => (
+                  <div key={commit.commit_id} className="border-b border-gray-700 pb-4">
+                    <div className="flex items-center justify-between">
+                      <span className="text-indigo-400">{commit.User.username}</span>
+                      <span className="text-sm text-gray-400">
+                        {timeAgo(commit.commit_timestamp)}
+                      </span>
+                    </div>
+                    <p className="text-gray-300 mt-1">{commit.commit_message}</p>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
-
-        {/* Files or Commits List */}
-        <div className="bg-gray-800 rounded-lg shadow-lg border border-gray-700 overflow-hidden">
-          {!showCommits ? (
-            <div className="divide-y divide-gray-700">
-              <div className="p-4 bg-gray-750 flex justify-between items-center">
-                <h2 className="text-lg font-medium text-white">Files</h2>
-                <button
-                  onClick={ () => setIsModalOpen(true)}
-                  className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 transition-colors"
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add File
-                </button>
-              </div>
-              {/* files start here */}
-              {/* {files.map((file) => (
-                <div
-                  key={file.name}
-                  className="flex items-center justify-between p-4 hover:bg-gray-750 transition-colors"
-                >
-                  <div className="flex items-center">
-                    {file.type === 'folder' ? (
-                      <Folder className="h-5 w-5 text-indigo-400 mr-3" />
-                    ) : (
-                      <File_image className="h-5 w-5 text-gray-400 mr-3" />
-                    )}
-                    <div>
-                      <button
-                        onClick={() => navigate(`/${username}/${repo_id}/${branch_name}/${file.name}`)}
-                        className="text-sm font-medium text-indigo-400 hover:text-indigo-300 transition-colors"
-                      >
-                        {file.name}
-                      </button>
-                      <p className="text-sm text-gray-400">
-                        {file.lastCommit} • {file.lastCommitDate}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              ))} */}
-
-              {/* actual file code */}
-              {FileItems?.map((file) => (
-                <div
-                  key={file.file_id}
-                  className="flex items-center justify-between p-4 hover:bg-gray-750 transition-colors"
-                >
-                  <div className="flex items-center">
-                    {file.type === 'folder' ? (
-                      <Folder className="h-5 w-5 text-indigo-400 mr-3" />
-                    ) : (
-                      <File_image className="h-5 w-5 text-gray-400 mr-3" />
-                    )}
-                    <div>
-                      <button
-                        onClick={() => navigate(`/${creator_id}/${repo_name}/${branch_name}/${file?.file_name}`)}
-                        className="text-sm font-medium text-indigo-400 hover:text-indigo-300 transition-colors"
-                      >
-                        {file.file_name}
-                      </button>
-                      <p className="text-sm text-gray-400">
-                        {file.commit_message} • {timeAgo(file?.commit_timestamp)}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="divide-y divide-gray-700">
-              <div className="p-4 bg-gray-750">
-                <h2 className="text-lg font-medium text-white">Commits</h2>
-              </div>
-              {/* {commits.map((commit) => (
-                <div key={commit.id} className="p-4 hover:bg-gray-750 transition-colors">
-                  <div className="flex items-start">
-                    <GitCommit className="h-5 w-5 text-indigo-400 mt-1" />
-                    <div className="ml-3">
-                      <p className="text-sm font-medium text-white">{commit.message}</p>
-                      <div className="mt-1 flex items-center text-sm text-gray-400">
-                        <span>{commit.author}</span>
-                        <span className="mx-1">•</span>
-                        <Clock className="h-4 w-4 mr-1" />
-                        <span>{commit.date}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))} */}
-
-              {/* commit messagesx */}
-              {commitItems?.map((commit) => (
-                <div key={commit.commit_id} className="p-4 hover:bg-gray-750 transition-colors">
-                  <div className="flex items-start">
-                    <GitCommit className="h-5 w-5 text-indigo-400 mt-1" />
-                    <div className="ml-3">
-                      <p className="text-sm font-medium text-white">{commit.commit_message}</p>
-                      <div className="mt-1 flex items-center text-sm text-gray-400">
-                        <span>{commit.User.username}</span>
-                        <span className="mx-1">•</span>
-                        <Clock className="h-4 w-4 mr-1" />
-                        <span>{timeAgo(commit.commit_timestamp)}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-        <AddFileModal
-  isOpen={isModalOpen}
-  onClose={() => setIsModalOpen(false)}
-  onFileSelected={handleFileSelected}
-/>
-
       </div>
+
+      {isModalOpen && (
+        <AddFileModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          onFileSelected={handleAddFile}
+        />
+      )}
     </div>
   );
 }

@@ -13,6 +13,10 @@ import BranchList from './pages/BranchList';
 import BranchView from './pages/BranchView';
 import FileView from './pages/FileView';
 import PullRequest from './pages/PullRequest';
+import FileHistory from './pages/FileHistory';
+import Issues from './pages/Issues';
+import PullRequestDetail from './pages/PullRequestDetails';
+import RepoContributors from './pages/RepoContributors';
 
 function App() {
   return (
@@ -30,9 +34,13 @@ function App() {
               <Route path="/:creator_id/:repo_name" element={<Repository />} />
               <Route path="/:creator_id/:repo_name/settings" element={<RepositorySettings />} />
               <Route path="/:creator_id/:repo_name/branches" element={<BranchList />} />
+              <Route path="/:creator_id/:repo_name/issues" element={<Issues />} />
               <Route path="/:creator_id/:repo_name/:branch_name" element={<BranchView />} />
               <Route path="/:creator_id/:repo_name/:branch_name/:file_name" element={<FileView />} />
-              <Route path="/:creator_id/:repo_name/pull/:pr_id" element={<PullRequest />} />
+              <Route path="/:creator_id/:repo_name/pull" element={<PullRequest />} />
+              <Route path="/:creator_id/:repo_name/pull/:pr_id" element={<PullRequestDetail />} />
+              <Route path="/:creator_id/:repo_name/:branch_name/:file_name/history" element={<FileHistory />} />
+              <Route path="/:creator_id/:repo_name/contributors" element={<RepoContributors />} />
             </Routes>
           </main>
         </div>

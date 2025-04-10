@@ -10,7 +10,12 @@ interface BranchList {
   name: string;
   lastCommit: {commit_message:string,commit_timestamp:string,User:{username:string}};
 }
-
+interface Branch {
+  name: string;
+  lastCommit: string;
+  lastCommitDate: string;
+  author: string;
+}
 export default function BranchList() {
   const { creator_id, repo_name } = useParams();
   const [branchList, setBranchList] = useState<BranchList[]|null>(null)

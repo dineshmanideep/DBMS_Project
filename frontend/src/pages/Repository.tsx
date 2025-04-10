@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Star, GitFork, Eye, GitBranch, Settings, Folder, File, Clock, Download, Shield, Info, ExternalLink } from 'lucide-react';
+import { Star, GitFork, Eye, GitBranch, Settings, Folder, File, Clock, Download, Shield, Info, ExternalLink, GitPullRequest, Users, AlertCircle } from 'lucide-react';
 import SkeletonLoader from '../components/SkeletonLoader';
 
 interface RepoFile {
@@ -83,6 +83,18 @@ export default function Repository() {
   };
 
   const pathParts = currentPath.split('/').filter(Boolean);
+
+  const handlePullRequests = () => {
+    navigate(`/${username}/${repo_id}/pull`);
+  };
+
+  const handleIssues = () => {
+    navigate(`/${username}/${repo_id}/issues`);
+  };
+
+  const handleContributors = () => {
+    navigate(`/${username}/${repo_id}/contributors`);
+  };
 
   return (
     <div className="min-h-screen bg-gray-900 text-gray-100">
@@ -184,6 +196,30 @@ export default function Repository() {
           </div>
           
           <div className="flex gap-2">
+            <button
+              onClick={handlePullRequests}
+              className="flex items-center space-x-1 px-3 py-2 bg-purple-600 hover:bg-purple-700 rounded-md transition-all"
+            >
+              <GitPullRequest size={16} />
+              <span>Pull Requests</span>
+            </button>
+
+            <button
+              onClick={handleIssues}
+              className="flex items-center space-x-1 px-3 py-2 bg-green-600 hover:bg-green-700 rounded-md transition-all"
+            >
+              <AlertCircle size={16} />
+              <span>Issues</span>
+            </button>
+
+            <button
+              onClick={handleContributors}
+              className="flex items-center space-x-1 px-3 py-2 bg-blue-600 hover:bg-blue-700 rounded-md transition-all"
+            >
+              <Users size={16} />
+              <span>Contributors</span>
+            </button>
+
             <button className="flex items-center space-x-1 px-3 py-2 bg-indigo-600 hover:bg-indigo-700 rounded-md transition-all">
               <Download size={16} />
               <span>Clone</span>
