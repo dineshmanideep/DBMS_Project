@@ -1,13 +1,15 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import { User } from '../types/auth';
-
+import { ContributerDetails } from '../types/repository_types';
 interface AuthContextType {
   user: User | null;
+  contributer:ContributerDetails|null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
   signup: (username: string, full_name: string, email: string, password: string) => Promise<void>;
   logout: () => void;
   getCurrentUser: () => Promise<void>;
+  getCurrentContributer: (creator_id:string,repo_name:string) => Promise<void>;
   theme: 'dark' | 'light';
   toggleTheme: () => void;
 }
@@ -18,6 +20,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [contributer, setContributer] = useState<ContributerDetails|null>(null);
   const [loading, setLoading] = useState<boolean>(true);
 
   const [theme, setTheme] = useState<'dark' | 'light'>(() => {
@@ -117,9 +120,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setLoading(false);
     }
   }, []);
+  
+  const getCurrentContributer= useCallback( async(creator_id:string,repo_name:string) => {
+      setLoading(true);
+      try {
+        const res= await fetch(`${BASE_URL}/contributer/${creator_id}/${repo_name}/me`,{
+          method:'GET',
+          credentials:'include'
+        })
+
+        const data=await res.json();
+        console.log("contirbuter data",data);
+        setContributer(data.data);
+        
+      } catch (error) {
+        console.log(error);
+      }
+      finally{
+        setLoading(false);
+      }
+    },[]
+  );
+  
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, signup, logout, getCurrentUser, theme, toggleTheme }}>
+    <AuthContext.Provider value={{ user,contributer, loading, login, signup, logout, getCurrentUser, theme, toggleTheme,getCurrentContributer }}>
       {children}
     </AuthContext.Provider>
   );

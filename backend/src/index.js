@@ -9,6 +9,9 @@ import repoRoutes from './routes/repositoryRoutes.js'
 import fileRoutes from './routes/fileRoutes.js'
 import commitRoutes from './routes/commitRoutes.js'
 import branchRoutes from './routes/branchRoutes.js'
+import contributerRoutes from './routes/contributerRoutes.js'
+import UserRoutes from './routes/UserRoutes.js'
+import IssueRoutes from './routes/issueRoutes.js'
 
 dotenv.config();
 
@@ -51,10 +54,13 @@ sequelize.authenticate()
 
 // API routes
 app.use('/', authRoutes);
+app.use('/issues',IssueRoutes)
+app.use('/user',UserRoutes)
 app.use('/repo',repoRoutes)
 app.use('/branch',branchRoutes)
 app.use('/file',fileRoutes)
 app.use('/commit',commitRoutes)
+app.use('/contributer',contributerRoutes)
 
 
 

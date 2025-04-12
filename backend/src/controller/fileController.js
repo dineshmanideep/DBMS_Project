@@ -1,4 +1,4 @@
-import { Branch, File, Repository,Commit } from "../models/index.js";
+import { Branch, File, Repository,Commit, User,Contributor } from "../models/index.js";
 import sequelize from "../config/database.js";
 import multer from 'multer';
 const storage = multer.memoryStorage();
@@ -31,7 +31,7 @@ export const fetchAllFiles = async (req, res) => {
     // Step 3: Get latest version of each file and join with Commits
     const files = await sequelize.query(
       `
-      SELECT f.file_name,f.file_id, c.commit_message, c.commit_timestamp, c.creator_id AS commit_creator_id
+      SELECT f.file_name,f.file_id, c.commit_message, c.commit_timestamp, c.creator_id AS commit_creator_id,u.username AS username
       FROM Files f
       INNER JOIN (
         SELECT file_name, MAX(commit_id) AS latest_commit_id
@@ -43,10 +43,11 @@ export const fetchAllFiles = async (req, res) => {
       ) latest_files
         ON f.file_name = latest_files.file_name AND f.commit_id = latest_files.latest_commit_id
       INNER JOIN Commits c ON f.commit_id = c.commit_id
+      INNER JOIN Users u ON u.user_id=c.creator_id
       `,
       {
         replacements: [branch.branch_id],
-        type: sequelize.QueryTypes.SELECT,
+        type: sequelize.QueryTypes.SELECT
       }
     );
 
@@ -96,6 +97,21 @@ export const createFile=async (req, res) => {
       file_type:req.file_type,
       commit_id:commit.commit_id
     });
+
+    //if user is not in contributers table then add him as contributer
+    const contributer= await Contributor.findOne({
+      where:{
+        user_id:req.user.user_id,
+        repo_id:repo.repo_id
+      }
+    })
+    if(!contributer){
+      const newContributer =await Contributor.create({
+        repo_id:repo.repo_id,
+        user_id:req.user.user_id,
+        role:"Contributor"
+      })
+    }
 
     res.status(201).json({ message: 'File uploaded and stored in DB', file: newFile });
   } catch (err) {
@@ -186,7 +202,19 @@ export const updateFile = async (req, res) => {
       file_size: content.length,
       commit_id: commit.commit_id
     });
-
+    const contributer= await Contributor.findOne({
+      where:{
+        user_id:req.user.user_id,
+        repo_id:repo.repo_id
+      }
+    })
+    if(!contributer){
+      const newContributer =await Contributor.create({
+        repo_id:repo.repo_id,
+        user_id:req.user.user_id,
+        role:"Contributor"
+      })
+    }
     res.status(201).json({ message: "File updated and new version created", file: updatedFile });
   } catch (err) {
     console.error("Update file error:", err);

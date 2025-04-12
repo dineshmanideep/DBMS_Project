@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { Plus, GitFork, Star } from 'lucide-react';
 import { BASE_URL } from '../context/AuthContext';
 import react,{ useEffect,useState } from 'react';
-import { Repository } from '../types/repository';
+import { Repository } from '../types/repository_types';
 import CreateRepositoryModal from '../components/CreateRepositoryModal';
 
 
@@ -102,7 +102,7 @@ export default function Home() {
           ))} */}
           {repos?.map((repo) => (
             <div
-              key={`${repo.creator_id}/${repo.repo_name}`}
+              key={`${repo.repo_id}`}
               className="bg-gray-800 rounded-lg shadow-lg border border-gray-700 p-6 hover:shadow-xl transition-shadow duration-200"
             >
               <div className="flex items-start justify-between">

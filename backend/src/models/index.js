@@ -35,8 +35,8 @@ PullRequest.belongsTo(Branch, { as: 'targetBranch', foreignKey: 'target_branch_i
 PullRequestReview.belongsTo(PullRequest, { foreignKey: 'pr_id' });
 PullRequestReview.belongsTo(User, { foreignKey: 'reviewer_id' });
 
-Issue.belongsTo(User, { foreignKey: 'creator_id' });
-Issue.belongsTo(User, { foreignKey: 'assignee_id' });
+Issue.belongsTo(User, {as:'creator', foreignKey: 'creator_id' });
+Issue.belongsTo(User, {as:'assignee', foreignKey: 'assignee_id' });
 Issue.belongsTo(Repository, { foreignKey: 'repo_id' });
 
 Contributor.belongsTo(Repository, { foreignKey: 'repo_id' });

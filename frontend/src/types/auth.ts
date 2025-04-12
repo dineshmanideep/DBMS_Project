@@ -6,6 +6,9 @@ export interface User {
   avatar?: string;
   bio?: string;
   createdAt: string;
+  registration_date?:string
+  location?:string;
+  website?:string
 }
 
 export interface AuthState {

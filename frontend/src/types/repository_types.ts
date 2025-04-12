@@ -7,6 +7,11 @@ export interface Repository {
   creation_date: string;
   stars?: number ;
   forks?: number;
+  watchers?:number;
+  license?:string
+  language?:string
+  languageColor?:string
+  tags?:string[]
 }
 
 export interface File {
@@ -29,12 +34,30 @@ export interface Branch {
   base_commit_id: number | null;
 }
 
-export interface Contributor {
+export interface Contributor_stat {
   user_id: number;
   username: string;
-  email: string;
-  role: 'Admin' | 'Contributor';
+  fullName: string;
   avatar?: string;
+  role: string;
+  profile_url: string;
+  contributions: number;
+  branches_created: number;
+  firstContribution: string | null;
+  last_contribution: string | null;
+  joinedAt: string;
+  recent_commits: {
+    id: number;
+    message: string;
+    timestamp: string;
+  }[];
+}
+
+
+export interface ContributerDetails{
+  repo_id:number,
+  user_id:number,
+  role:string
 }
 
 export interface Commit {
@@ -43,4 +66,17 @@ export interface Commit {
   creator_id: number;
   commit_timestamp: string;
   branch_id:number
+}
+
+
+export interface Issue{
+  issue_id:string;
+  repo_id:string;
+  creator_id?:string;
+  issue_title:string;
+  issue_description:string;
+  status:string;
+  assignee_id:string;
+  creation_date:string;
+  labels:string[];
 }

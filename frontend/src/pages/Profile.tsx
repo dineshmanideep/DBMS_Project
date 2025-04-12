@@ -1,20 +1,64 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Pencil, Save, X, Lock, Github, MapPin, Mail, Globe, Calendar } from 'lucide-react';
+import { BASE_URL, useAuth } from '../context/AuthContext';
+import { useParams } from 'react-router-dom';
+import { User } from '../types/auth';
+import { timeAgo } from '../lib/timeAlgo';
+import { Repository,ContributerDetails } from '../types/repository_types';
+// import Repository from './Repository';
+
+interface RepoItems extends ContributerDetails{
+  Repository:Repository
+
+}
 
 export default function Profile() {
+  const {id} =useParams();
   const [isEditing, setIsEditing] = useState(false);
-  const [userDetails, setUserDetails] = useState({
-    username: 'johndoe',
-    full_name: 'John Doe',
-    email: 'johndoe@example.com',
-    avatar: 'https://ui-avatars.com/api/?name=John+Doe&background=random',
-    bio: 'Full-stack developer passionate about open source.',
-    location: 'San Francisco, CA',
-    website: 'https://johndoe.dev',
-    createdAt: 'January 2023',
-  });
+  const [authorized, setAuthorized] = useState<Boolean>(false);
+  const {user}=useAuth();
+  const [repos, setRepos] = useState<RepoItems[]|null>(null)
+  
 
-  const [editedDetails, setEditedDetails] = useState({ ...userDetails });
+  
+
+  useEffect(() => {
+    fetchUser();
+    fetchRepos();
+    
+  }, [])
+  
+  
+  const [userDetails, setUserDetails] = useState<User|null>(null);
+  useEffect(() => {
+    if(id==user?.user_id){
+      setAuthorized(true);
+    }
+  
+  }, [userDetails,id]);
+
+  const fetchUser= async()=>{
+    const res=await fetch(`${BASE_URL}/user/${id}`,{
+    credentials:'include'
+  })
+  const data=await res.json();
+  console.log("user data",data);
+  setUserDetails({...data.data});
+
+  };
+
+  const fetchRepos=async()=>{
+    const res= await fetch(`${BASE_URL}/repo/specific/${id}`,{
+    
+      credentials:'include'
+    });
+    const data= await res.json();
+    console.log("repo details",data)
+    setRepos(data.data)
+
+  }
+
+  const [editedDetails, setEditedDetails] = useState({...userDetails} );
 
   // Repository data from your desired profile
   const publicRepositories = [
@@ -80,16 +124,16 @@ export default function Profile() {
 
   const handleEditToggle = () => {
     if (isEditing) {
-      setUserDetails(editedDetails);
+      setUserDetails(editedDetails as User);
     } else {
-      setEditedDetails({ ...userDetails });
+      setEditedDetails({...userDetails});
     }
     setIsEditing(!isEditing);
   };
 
   const handleCancelEdit = () => {
     setIsEditing(false);
-    setEditedDetails({ ...userDetails });
+    setEditedDetails({...userDetails} );
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -99,6 +143,33 @@ export default function Profile() {
       [name]: value,
     });
   };
+
+  const handleEdit =async()=>{
+    try {
+      console.log("hit edit")
+      const res= await fetch(`${BASE_URL}/user/update/${userDetails?.user_id}`,{
+        method:'PUT',
+        headers: {
+          'Content-Type': 'application/json',          
+        },
+        credentials:'include',
+        body: JSON.stringify(editedDetails),
+      })
+      const data=await res.json();
+      console.log("updated data",data);
+      setUserDetails(editedDetails as User);
+      
+    } catch (error) {
+      console.log(error);
+    }
+    finally{
+
+      setIsEditing(false)
+    }
+    
+    
+
+  }
 
   return (
     <div className="min-h-screen bg-gray-900 text-gray-100">
@@ -111,12 +182,12 @@ export default function Profile() {
                 <div className="h-24 bg-gradient-to-r from-indigo-600 to-purple-600"></div>
                 <div className="absolute -bottom-12 left-1/2 transform -translate-x-1/2">
                   <img
-                    src={userDetails.avatar}
+                    src={`https://ui-avatars.com/api/?name=${encodeURIComponent(userDetails?.full_name)}`}
                     alt="Profile"
                     className="h-24 w-24 rounded-full border-4 border-gray-800"
                   />
                 </div>
-                {!isEditing && (
+                {(authorized&&!isEditing) && (
                   <button
                     onClick={handleEditToggle}
                     className="absolute top-4 right-4 p-2 bg-gray-800 rounded-full hover:bg-gray-700 transition-colors"
@@ -185,7 +256,7 @@ export default function Profile() {
                       <input
                         type="text"
                         name="location"
-                        value={editedDetails.location}
+                        value={editedDetails?.location}
                         onChange={handleChange}
                         className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white"
                       />
@@ -197,17 +268,17 @@ export default function Profile() {
                       <input
                         type="url"
                         name="website"
-                        value={editedDetails.website}
+                        value={editedDetails?.website}
                         onChange={handleChange}
                         className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white"
                       />
                     </div>
                     <div className="flex space-x-2 pt-2">
                       <button
-                        onClick={handleEditToggle}
+                        onClick={()=>{handleEditToggle(),handleEdit()}}
                         className="flex-1 flex items-center justify-center px-4 py-2 bg-indigo-600 hover:bg-indigo-700 rounded-md font-medium transition-colors"
                       >
-                        <Save size={16} className="mr-2" />
+                        <Save size={16} className="mr-2" onClick={handleEdit} />
                         Save
                       </button>
                       <button
@@ -222,19 +293,20 @@ export default function Profile() {
                 </div>
               ) : (
                 <div className="pt-16 p-6 text-center">
-                  <h1 className="text-xl font-bold text-white">{userDetails.full_name}</h1>
-                  <p className="text-gray-400">@{userDetails.username}</p>
-                  <p className="text-gray-300 mt-4">{userDetails.bio}</p>
+                  <h1 className="text-xl font-bold text-white">{userDetails?.full_name}</h1>
+                  <p className="text-gray-400">@{userDetails?.username}</p>
+                  <p className="text-gray-300 mt-4">{userDetails?.bio||"No bio"}</p>
                   <div className="mt-6 space-y-2 text-sm text-gray-400">
-                    <p><MapPin size={16} className="inline mr-2" /> {userDetails.location}</p>
-                    <p><Mail size={16} className="inline mr-2" /> {userDetails.email}</p>
+                    <p><MapPin size={16} className="inline mr-2" /> {userDetails?.location||"texas"}</p>
+                    <p><Mail size={16} className="inline mr-2" /> {userDetails?.email}</p>
                     <p>
                       <Globe size={16} className="inline mr-2" />{' '}
-                      <a href={userDetails.website} target="_blank" rel="noopener noreferrer" className="text-indigo-400 hover:text-indigo-300">
-                        {userDetails.website.replace(/^https?:\/\//, '')}
+                      <a href={userDetails?.website} target="_blank" rel="noopener noreferrer" className="text-indigo-400 hover:text-indigo-300">
+                        {/* {userDetails?.website?.replace(/^https?:\/\//, '')} */}
+                        {userDetails?.website||"https://google.com"}
                       </a>
                     </p>
-                    <p><Calendar size={16} className="inline mr-2" /> Joined {userDetails.createdAt}</p>
+                    <p><Calendar size={16} className="inline mr-2" /> Joined {timeAgo(userDetails?.registration_date as string)}</p>
                   </div>
                 </div>
               )}
@@ -251,33 +323,34 @@ export default function Profile() {
                   Private Repositories
                 </h2>
                 <span className="text-sm bg-gray-700 px-2 py-1 rounded-md text-gray-300">
-                  {privateRepositories.length} repos
+                  {repos?.filter((repo)=>{return repo.Repository.visibility=='Private'}).length} repos
                 </span>
               </div>
               <div className="divide-y divide-gray-700">
-                {privateRepositories.map((repo, index) => (
+              
+                {repos?.map((repo, index) => (repo.Repository.visibility=="Private"&&
                   <div key={index} className="p-5 hover:bg-gray-750 transition-colors">
                     <div className="flex items-start justify-between">
                       <div>
                         <h3 className="text-lg font-medium">
                           <a href="#" className="text-indigo-400 hover:text-indigo-300 transition-colors flex items-center">
-                            {repo.name}
+                            {repo.Repository.repo_name}
                             <span className="ml-2 px-2 py-0.5 text-xs font-medium rounded-full bg-gray-700 text-gray-300 flex items-center">
                               <Lock size={12} className="mr-1" />
                               Private
                             </span>
                           </a>
                         </h3>
-                        <p className="text-gray-400 text-sm mt-1">{repo.description}</p>
+                        <p className="text-gray-400 text-sm mt-1">{repo?.Repository?.description||"description"}</p>
                         <div className="mt-3 flex items-center flex-wrap gap-x-4 gap-y-2 text-sm text-gray-400">
                           <span className="flex items-center">
-                            <span style={{ backgroundColor: repo.languageColor }} className="w-3 h-3 rounded-full inline-block mr-2"></span>
-                            {repo.language}
+                            <span style={{ backgroundColor: repo?.Repository.languageColor ||"yellow"}} className="w-3 h-3 rounded-full inline-block mr-2"></span>
+                            {repo?.Repository.language||"javascript"}
                           </span>
-                          <span>Updated {repo.updated}</span>
+                          <span>Created {timeAgo(repo.Repository.creation_date)}</span>
                         </div>
                         <div className="mt-3 flex flex-wrap gap-2">
-                          {repo.tags.map((tag, tagIndex) => (
+                          {repo.Repository.tags?.map((tag, tagIndex) => (
                             <span
                               key={tagIndex}
                               className="px-2 py-1 text-xs rounded-md bg-indigo-900/50 text-indigo-300 border border-indigo-800"
@@ -301,32 +374,33 @@ export default function Profile() {
                   Public Repositories
                 </h2>
                 <span className="text-sm bg-gray-700 px-2 py-1 rounded-md text-gray-300">
-                  {publicRepositories.length} repos
+                {repos?.filter((repo)=>{return repo.Repository.visibility=='Public'}).length} repos
                 </span>
               </div>
               <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-                {publicRepositories.map((repo, index) => (
+               
+                {repos?.map((repo, index) => (repo.Repository.visibility=='Public'&&
                   <div key={index} className="bg-gray-750 rounded-lg p-4 border border-gray-700 hover:border-gray-600 transition-colors">
                     <h3 className="text-indigo-400 font-medium hover:text-indigo-300 cursor-pointer flex items-center">
-                      {repo.name}
+                      {repo.Repository?.repo_name}
                       <span className="ml-2 px-2 py-0.5 text-xs font-medium rounded-full bg-green-900 text-green-300 flex items-center">
                         <Github size={12} className="mr-1" />
                         Public
                       </span>
                     </h3>
-                    <p className="text-gray-400 text-sm mt-2">{repo.description}</p>
+                    <p className="text-gray-400 text-sm mt-2">{repo.Repository.description||"missing des"}</p>
                     <div className="mt-4 flex items-center justify-between text-sm text-gray-400">
                       <div className="flex items-center">
-                        <span style={{ backgroundColor: repo.languageColor }} className="w-3 h-3 rounded-full inline-block mr-2"></span>
-                        {repo.language}
+                        <span style={{ backgroundColor: repo.Repository.languageColor ||"yellow" }} className="w-3 h-3 rounded-full inline-block mr-2"></span>
+                        {repo.Repository.language||"javascript"}
                       </div>
                       <div className="flex items-center space-x-4">
-                        <span>⭐ {repo.stars}</span>
-                        <span>🍴 {repo.forks}</span>
+                        <span>⭐ {repo.Repository.stars||"0"}</span>
+                        <span>🍴 {repo.Repository.forks||"1"}</span>
                       </div>
                     </div>
                     <div className="mt-3 flex flex-wrap gap-2">
-                      {repo.tags.map((tag, tagIndex) => (
+                      {repo.Repository.tags?.map((tag, tagIndex) => (
                         <span
                           key={tagIndex}
                           className="px-2 py-1 text-xs rounded-md bg-indigo-900/50 text-indigo-300 border border-indigo-800"

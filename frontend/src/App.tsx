@@ -11,12 +11,14 @@ import Repository from './pages/Repository';
 import RepositorySettings from './pages/RepositorySettings';
 import BranchList from './pages/BranchList';
 import BranchView from './pages/BranchView';
+import BranchHistory from './pages/BranchHistory';
 import FileView from './pages/FileView';
 import PullRequest from './pages/PullRequest';
 import FileHistory from './pages/FileHistory';
 import Issues from './pages/Issues';
 import PullRequestDetail from './pages/PullRequestDetails';
 import RepoContributors from './pages/RepoContributors';
+import IssueForm from './pages/IssueForm';
 
 function App() {
   return (
@@ -29,13 +31,16 @@ function App() {
               <Route path="/" element={<Home />} />
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route path="/:user_id" element={<UserProfile />} />
-              <Route path="/:creator_id/:repo_name" element={<Repository />} />
+              <Route path="/profile/:id" element={<Profile />} />
               <Route path="/:creator_id/:repo_name/settings" element={<RepositorySettings />} />
               <Route path="/:creator_id/:repo_name/branches" element={<BranchList />} />
               <Route path="/:creator_id/:repo_name/issues" element={<Issues />} />
-              <Route path="/:creator_id/:repo_name/:branch_name" element={<BranchView />} />
+              <Route path="/:creator_id/:repo_name/issues/new" element={<IssueForm />} />
+              <Route path="/:creator_id/:repo_name/issues/:issue_id/edit" element={<IssueForm />} />
+              <Route path="/:creator_id/:repo_name/:branch_name" element={<Repository />} />
+              <Route path="/:creator_id/:repo_name/:branch_name/history" element={<BranchHistory />} />
+
+              {/* <Route path="/:creator_id/:repo_name/:branch_name" element={<BranchView />} /> */}
               <Route path="/:creator_id/:repo_name/:branch_name/:file_name" element={<FileView />} />
               <Route path="/:creator_id/:repo_name/pull" element={<PullRequest />} />
               <Route path="/:creator_id/:repo_name/pull/:pr_id" element={<PullRequestDetail />} />

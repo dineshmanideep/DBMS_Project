@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { File as File_image, Folder, GitBranch, Plus, GitCommit, Clock, History } from 'lucide-react';
-import { Commit, File as RepoFile } from '../types/repository';
+import { Commit, File as RepoFile } from '../types/repository_types';
 import { timeAgo } from '../lib/timeAlgo';
 import AddFileModal from '../components/AddFileModal';
 
