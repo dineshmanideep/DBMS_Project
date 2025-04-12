@@ -77,8 +77,8 @@ export default function Header() {
             </div>
             <div className="relative">
               <button className="flex items-center space-x-2 text-gray-300 hover:text-white">
-                <img
-                  src={user?.avatar || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80'}
+                <img onClick={()=>navigate(`/profile/${user?.user_id}`)}
+                  src={user?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.full_name)}`}
                   alt="User avatar"
                   className="h-8 w-8 rounded-full"
                 />

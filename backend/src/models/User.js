@@ -25,6 +25,22 @@ const User = sequelize.define('User', {
   registration_date: {
     type: DataTypes.DATE,
     defaultValue: DataTypes.NOW
+  },
+  avatar:{
+    type:DataTypes.STRING(255),
+    allowNull:true
+  },
+  bio:{
+    type:DataTypes.STRING(255),
+    allowNull:true
+  },
+  location:{
+    type:DataTypes.STRING(255),
+    allowNull:true
+  },
+  website:{
+    type:DataTypes.STRING(255),
+    allowNull:true
   }
 }, {
   tableName: 'Users',

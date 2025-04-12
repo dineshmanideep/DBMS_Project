@@ -5,7 +5,7 @@ export const repositoryController = {
   async create(req, res) {
     try {
       const { repo_name, description, visibility } = req.body;
-      console.log("hit create repo ",req.user);
+      console.log("hit create repo ",req.user.toJSON());
       const repository = await Repository.create({
         repo_name,
         description,
@@ -43,12 +43,12 @@ export const repositoryController = {
       const contributer= await Contributor.findOne({
         where:{
           user_id:req.user.user_id,
-          repo_id:repo.repo_id
+          repo_id:repository.repo_id
         }
       })
       if(!contributer){
         const newContributer =await Contributor.create({
-          repo_id:repo.repo_id,
+          repo_id:repository.repo_id,
           user_id:req.user.user_id,
           role:"Admin"
         })
@@ -58,6 +58,7 @@ export const repositoryController = {
       res.status(201).json({message:"true",data:repository});
       // res.status(201).json({message:"done"});
     } catch (error) {
+      console.log("error",error)
       res.status(500).json({ error: error.message });
     }
   },

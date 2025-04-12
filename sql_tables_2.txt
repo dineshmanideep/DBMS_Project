@@ -1,0 +1,197 @@
+CREATE TABLE Users (
+  user_id INT AUTO_INCREMENT PRIMARY KEY,
+  username VARCHAR(100) UNIQUE NOT NULL,
+  email VARCHAR(100) UNIQUE NOT NULL,
+  full_name VARCHAR(255),
+  password VARCHAR(255) NOT NULL,
+  registration_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+  avatar VARCHAR(255),
+  bio VARCHAR(255),
+  location VARCHAR(255),
+  website VARCHAR(255)
+);
+
+CREATE TABLE Repositories (
+  repo_id INT AUTO_INCREMENT PRIMARY KEY,
+  creator_id INT,
+  repo_name VARCHAR(255) NOT NULL,
+  description TEXT,
+  visibility VARCHAR(50) DEFAULT 'Public',
+  creation_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+  stars INT DEFAULT 0,
+  forks INT DEFAULT 0,
+  license VARCHAR(255),
+  language VARCHAR(255),
+  languageColor VARCHAR(255),
+  tags TEXT,
+  FOREIGN KEY (creator_id) REFERENCES Users(user_id) ON DELETE CASCADE
+);
+
+
+
+INSERT INTO Users (username, email, full_name, password, avatar, bio, location, website) VALUES
+('johndoe', 'john@example.com', 'John Doe', '$2a$12$OCn4J45vhru.9e0qsPKgMe90ESRnNH7v4g.VArE9C8zGCMVYqdnw.', 'https://github.com/johndoe.png', 'Full-stack developer', 'New York, USA', 'https://johndoe.dev'),
+('janedoe', 'jane@example.com', 'Jane Doe', '$2a$12$OCn4J45vhru.9e0qsPKgMe90ESRnNH7v4g.VArE9C8zGCMVYqdnw.', 'https://github.com/janedoe.png', 'Frontend Developer', 'San Francisco, USA', 'https://janedoe.dev'),
+('bobsmith', 'bob@example.com', 'Bob Smith', '$2a$12$OCn4J45vhru.9e0qsPKgMe90ESRnNH7v4g.VArE9C8zGCMVYqdnw.', 'https://github.com/bobsmith.png', 'Backend Developer', 'London, UK', 'https://bobsmith.dev'),
+('alicejones', 'alice@example.com', 'Alice Jones', '$2a$12$OCn4J45vhru.9e0qsPKgMe90ESRnNH7v4g.VArE9C8zGCMVYqdnw.', 'https://github.com/alicejones.png', 'DevOps Engineer', 'Toronto, Canada', 'https://alicejones.dev'),
+('mikebrown', 'mike@example.com', 'Mike Brown', '$2a$12$OCn4J45vhru.9e0qsPKgMe90ESRnNH7v4g.VArE9C8zGCMVYqdnw.', 'https://github.com/mikebrown.png', 'Security Expert', 'Berlin, Germany', 'https://mikebrown.dev');
+
+INSERT INTO Repositories (creator_id, repo_name, description, visibility, stars, forks, license, language, languageColor, tags) VALUES
+(1, 'awesome-project', 'A really awesome project', 'Public', 150, 25, 'MIT', 'JavaScript', '#f1e05a', '["javascript", "web", "frontend"]'),
+(1, 'private-repo', 'Private repository', 'Private', 0, 0, 'Apache-2.0', 'Python', '#3572A5', '["python", "backend", "api"]'),
+(2, 'react-components', 'Reusable React components', 'Public', 75, 12, 'MIT', 'TypeScript', '#2b7489', '["react", "typescript", "ui"]'),
+(3, 'go-microservices', 'Microservices in Go', 'Public', 200, 45, 'GPL-3.0', 'Go', '#00ADD8', '["go", "microservices", "backend"]'),
+(4, 'devops-tools', 'Collection of DevOps tools', 'Public', 125, 30, 'MIT', 'Shell', '#89e051', '["devops", "automation", "tools"]'),
+(5, 'security-scanner', 'Security vulnerability scanner', 'Public', 180, 35, 'MIT', 'Rust', '#dea584', '["security", "rust", "tools"]');
+
+
+CREATE TABLE Contributors (
+  contributor_id INT AUTO_INCREMENT PRIMARY KEY,
+  repo_id INT,
+  user_id INT,
+  role VARCHAR(50) DEFAULT 'Contributor',
+  joined_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (repo_id) REFERENCES Repositories(repo_id) ON DELETE CASCADE,
+  FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE CASCADE
+);
+
+
+INSERT INTO Contributors (repo_id, user_id, role) VALUES
+(1, 2, 'Contributor'),
+(1, 3, 'Admin'),
+(2, 4, 'Contributor'),
+(3, 1, 'Contributor'),
+(3, 5, 'Admin'),
+(4, 2, 'Contributor'),
+(5, 3, 'Contributor'),
+(6, 1, 'Admin');
+
+CREATE TABLE Issues (
+  issue_id INT AUTO_INCREMENT PRIMARY KEY,
+  repo_id INT,
+  creator_id INT,
+  assignee_id INT,
+  issue_title VARCHAR(255) NOT NULL,
+  issue_description TEXT,
+  status VARCHAR(50) DEFAULT 'Open',
+  creation_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (repo_id) REFERENCES Repositories(repo_id) ON DELETE CASCADE,
+  FOREIGN KEY (creator_id) REFERENCES Users(user_id) ON DELETE CASCADE,
+  FOREIGN KEY (assignee_id) REFERENCES Users(user_id) ON DELETE SET NULL
+);
+
+
+INSERT INTO Issues (repo_id, creator_id, assignee_id, issue_title, issue_description, status) VALUES
+(1, 2, 1, 'Bug in login flow', 'Users unable to login with Google OAuth', 'Open'),
+(1, 3, 2, 'Add dark mode support', 'Implement dark mode theme switching', 'Open'),
+(2, 1, 3, 'Performance optimization needed', 'API response time is too slow', 'Closed'),
+(3, 4, 5, 'Documentation update required', 'Add examples for new components', 'Open'),
+(4, 5, 1, 'Security vulnerability', 'Potential SQL injection in query builder', 'Open'),
+(5, 2, 4, 'Feature request: Export data', 'Add CSV export functionality', 'Closed');
+
+
+CREATE TABLE Branches (
+  branch_id INT AUTO_INCREMENT PRIMARY KEY,
+  repo_id INT,
+  name VARCHAR(255) NOT NULL,
+  creator_id INT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  last_commit_id INT,
+  parent_branch_id INT,
+  base_commit_id INT,
+  FOREIGN KEY (repo_id) REFERENCES Repositories(repo_id) ON DELETE CASCADE,
+  FOREIGN KEY (creator_id) REFERENCES Users(user_id) ON DELETE CASCADE,
+  FOREIGN KEY (parent_branch_id) REFERENCES Branches(branch_id) ON DELETE SET NULL
+);
+
+INSERT INTO Branches (repo_id, name, creator_id) VALUES
+(1, 'main', 1),
+(1, 'development', 2),
+(2, 'main', 1),
+(3, 'main', 2),
+(3, 'feature/auth', 2),
+(4, 'main', 3),
+(5, 'main', 4),
+(5, 'bugfix/security', 4);
+
+CREATE TABLE Commits (
+commit_id INT AUTO_INCREMENT PRIMARY KEY,
+branch_id INT,
+creator_id INT,
+commit_message TEXT,
+commit_timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+FOREIGN KEY (branch_id) REFERENCES Branches(branch_id) ON DELETE CASCADE,
+FOREIGN KEY (creator_id) REFERENCES Users(user_id) ON DELETE CASCADE
+);
+
+
+ALTER TABLE Branches
+ADD FOREIGN KEY (base_commit_id) REFERENCES Commits(commit_id) ON DELETE SET NULL;
+ALTER TABLE Branches
+ADD FOREIGN KEY (last_commit_id) REFERENCES Commits(commit_id) ON DELETE SET NULL;
+
+
+
+CREATE TABLE Files (
+file_id INT AUTO_INCREMENT PRIMARY KEY,
+commit_id INT,
+file_name VARCHAR(255) NOT NULL,
+file_type VARCHAR(50),
+file_size BIGINT,
+file_content LONGBLOB NOT NULL,
+uploaded_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+FOREIGN KEY (commit_id) REFERENCES Commits(commit_id) ON DELETE CASCADE
+);
+
+CREATE TABLE Pull_Requests (
+pr_id INT AUTO_INCREMENT PRIMARY KEY,
+creator_id INT,
+pr_title VARCHAR(255),
+pr_description TEXT,
+pr_status VARCHAR(50) DEFAULT 'Open',
+base_branch_id INT,
+target_branch_id INT,
+creation_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+FOREIGN KEY (creator_id) REFERENCES Users(user_id) ON DELETE CASCADE,
+FOREIGN KEY (base_branch_id) REFERENCES Branches(branch_id) ON DELETE CASCADE,
+FOREIGN KEY (target_branch_id) REFERENCES Branches(branch_id) ON DELETE CASCADE
+);
+
+CREATE TABLE Pull_Request_Reviews (
+pr_id INT,
+reviewer_id INT,
+review_comments TEXT,
+review_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+PRIMARY KEY (pr_id, reviewer_id),
+FOREIGN KEY (pr_id) REFERENCES Pull_Requests(pr_id) ON DELETE CASCADE,
+FOREIGN KEY (reviewer_id) REFERENCES Users(user_id) ON DELETE CASCADE
+);
+
+INSERT INTO Commits (branch_id, creator_id, commit_message) VALUES
+(1, 1, 'Initial commit with README'),
+(1, 2, 'Added main.py file'),
+(2, 2, 'Started development branch'),
+(3, 1, 'Initial commit for private repo'),
+(4, 2, 'Initial commit for react-components'),
+(5, 2, 'Added auth module'),
+(6, 3, 'Initial DevOps tools commit'),
+(7, 4, 'Initial security scanner commit');
+
+INSERT INTO Files (commit_id, file_name, file_type, file_size, file_content) VALUES
+(1, 'README.md', 'text', 1024, 'This is the README file'),
+(2, 'main.py', 'python', 2048, 'print("Hello, World!")'),
+(4, 'api.py', 'python', 3072, '# API logic here'),
+(5, 'Button.tsx', 'typescript', 4096, 'export const Button = () => <button>Click</button>;'),
+(6, 'auth.ts', 'typescript', 2048, 'export const login = () => {};'),
+(7, 'deploy.sh', 'shell', 512, 'echo Deploying...'),
+(8, 'scanner.rs', 'rust', 1536, 'fn main() { println!("Scanning..."); }');
+
+INSERT INTO Pull_Requests (creator_id, pr_title, pr_description, pr_status, base_branch_id, target_branch_id) VALUES
+(2, 'Merge development into main', 'Sync changes from dev branch', 'Open', 1, 2),
+(3, 'Add auth feature', 'Implemented authentication logic', 'Open', 5, 4),
+(4, 'Fix security issue', 'Patched vulnerability in scanner', 'Open', 8, 7);
+
+INSERT INTO Pull_Request_Reviews (pr_id, reviewer_id, review_comments) VALUES
+(1, 1, 'Looks good overall'),
+(2, 1, 'Needs some cleanup'),
+(3, 5, 'Security patch verified');

@@ -34,27 +34,6 @@ const fetchAllBranches= async()=>{
   console.log(data);
 }
 
-  // Mock branches data
-  const branches: Branch[] = [
-    {
-      name: 'main',
-      lastCommit: 'Initial commit',
-      lastCommitDate: '2 days ago',
-      author: 'johndoe',
-    },
-    {
-      name: 'feature/user-auth',
-      lastCommit: 'Add user authentication',
-      lastCommitDate: '1 day ago',
-      author: 'janedoe',
-    },
-    {
-      name: 'bugfix/login',
-      lastCommit: 'Fix login issues',
-      lastCommitDate: '3 hours ago',
-      author: 'johndoe',
-    },
-  ];
 
   return (
     <div className="min-h-screen bg-gray-900 text-gray-100">
@@ -68,46 +47,7 @@ const fetchAllBranches= async()=>{
           </div>
 
           <div className="divide-y divide-gray-700">
-            {/* {branches.map((branch) => (
-              <div
-                key={branch.name}
-                className="px-4 py-4 hover:bg-gray-750 transition-colors sm:px-6"
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <GitBranch className="h-5 w-5 text-indigo-400" />
-                    <button
-                      onClick={() => navigate(`/${username}/${repo_id}/${branch.name}`)}
-                      className="ml-3 text-sm font-medium text-indigo-400 hover:text-indigo-300 transition-colors"
-                    >
-                      {branch.name}
-                    </button>
-                  </div>
-                  {branch.name !== 'main' && (
-                    <button
-                      onClick={() => navigate(`/${username}/${repo_id}/${branch.name}/pull-request`)}
-                      className="ml-4 px-3 py-1 text-sm text-indigo-400 hover:text-indigo-300 border border-indigo-700 rounded-md transition-colors"
-                    >
-                      Create Pull Request
-                    </button>
-                  )}
-                </div>
-                <div className="mt-2 sm:flex sm:justify-between">
-                  <div className="sm:flex">
-                    <div className="flex items-center text-sm text-gray-400">
-                      <GitCommit className="flex-shrink-0 mr-1.5 h-4 w-4 text-gray-500" />
-                      {branch.lastCommit}
-                    </div>
-                  </div>
-                  <div className="mt-2 flex items-center text-sm text-gray-400 sm:mt-0">
-                    <Clock className="flex-shrink-0 mr-1.5 h-4 w-4 text-gray-500" />
-                    <p>
-                      Updated {branch.lastCommitDate} by {branch.author}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            ))} */}
+           
             {branchList?.map((branch) => (
               <div
                 key={branch.name}
@@ -125,7 +65,7 @@ const fetchAllBranches= async()=>{
                   </div>
                   {branch.name !== 'main' && (
                     <button
-                      onClick={() => navigate(`/${creator_id}/${repo_name}/${branch.name}/pull-request`)}
+                      onClick={() => navigate(`/${creator_id}/${repo_name}/pull`)}
                       className="ml-4 px-3 py-1 text-sm text-indigo-400 hover:text-indigo-300 border border-indigo-700 rounded-md transition-colors"
                     >
                       Create Pull Request

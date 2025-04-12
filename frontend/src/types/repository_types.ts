@@ -7,7 +7,6 @@ export interface Repository {
   creation_date: string;
   stars?: number ;
   forks?: number;
-  watchers?:number;
   license?:string
   language?:string
   languageColor?:string
