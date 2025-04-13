@@ -1,40 +1,28 @@
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Plus, GitFork, Star } from 'lucide-react';
+import { Plus, GitFork, Star, Lock, Github } from 'lucide-react';
 import { BASE_URL } from '../context/AuthContext';
 import react,{ useEffect,useState } from 'react';
-import { Repository } from '../types/repository_types';
+import { timeAgo } from '../lib/timeAlgo';
 import CreateRepositoryModal from '../components/CreateRepositoryModal';
 
-
-//mock data
-// interface RepositoryCard {
-//   repo_name: string;
-//   description: string;
-//   stars?: number ;
-//   forks?: number;
-//   username: string;
-// }
-// mock data
-// const mockRepositories: RepositoryCard[] = [
-//   {
-//     repo_name: 'react-starter',
-//     description: 'A modern React starter template with TypeScript and Tailwind CSS',
-//     stars: 128,
-//     forks: 45,
-//     username: 'johndoe',
-//   },
-//   {
-//     repo_name: 'node-api',
-//     description: 'RESTful API boilerplate using Node.js and Express',
-//     stars: 89,
-//     forks: 23,
-//     username: 'johndoe',
-//   },
-// ];
-
-
-
+interface Repository {
+  repo_id: number;
+  creator_id: number;
+  repo_name: string;
+  description: string;
+  visibility: 'Public' | 'Private';
+  creation_date: string;
+  license: string;
+  language: string;
+  languageColor: string;
+  stars: number;
+  forks: number;
+  tags: string[];
+  User: {
+    username: string;
+  };
+}
 
 export default function Home() {
   const navigate = useNavigate();
@@ -70,65 +58,75 @@ export default function Home() {
             New Repository
           </button>
         </div>
-
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-       {/* mockdata  */}
-          {/* {mockRepositories.map((repo) => (
-            <div
-              key={`${repo.username}/${repo.repo_name}`}
-              className="bg-gray-800 rounded-lg shadow-lg border border-gray-700 p-6 hover:shadow-xl transition-shadow duration-200"
-            >
-              <div className="flex items-start justify-between">
-                <div>
-                  <h3 className="text-lg font-semibold text-indigo-400 hover:text-indigo-300">
-                    <button onClick={() => navigate(`/${repo.username}/${repo.repo_name}/main`)}>
-                      {repo.repo_name}
-                    </button>
-                  </h3>
-                  <p className="text-sm text-gray-400 mt-1">{repo.description}</p>
-                </div>
-              </div>
-              <div className="flex items-center space-x-4 mt-4">
-                <div className="flex items-center text-sm text-gray-400">
-                  <Star className="h-4 w-4 mr-1 text-yellow-400" />
-                  {repo?.stars ||0}
-                </div>
-                <div className="flex items-center text-sm text-gray-400">
-                  <GitFork className="h-4 w-4 mr-1" />
-                  {repo?.forks||0}
-                </div>
-              </div>
-            </div>
-          ))} */}
+ <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {repos?.map((repo) => (
             <div
-              key={`${repo.repo_id}`}
+              key={repo.repo_id}
               className="bg-gray-800 rounded-lg shadow-lg border border-gray-700 p-6 hover:shadow-xl transition-shadow duration-200"
             >
               <div className="flex items-start justify-between">
                 <div>
-                  <h3 className="text-lg font-semibold text-indigo-400 hover:text-indigo-300">
+                  <h3 className="text-lg font-semibold text-indigo-400 hover:text-indigo-300 flex items-center">
                     <button onClick={() => navigate(`/${repo.creator_id}/${repo.repo_name}/main`)}>
                       {repo.repo_name}
                     </button>
+                    <span className={`ml-2 px-2 py-0.5 text-xs font-medium rounded-full flex items-center
+                      ${repo.visibility === 'Private' 
+                        ? 'bg-gray-700 text-gray-300' 
+                        : 'bg-green-900 text-green-300'}`}
+                    >
+                      {repo.visibility === 'Private' 
+                        ? <><Lock size={12} className="mr-1" />Private</>
+                        : <><Github size={12} className="mr-1" />Public</>
+                      }
+                    </span>
                   </h3>
-                  <p className="text-sm text-gray-400 mt-1">{repo.description}</p>
+                  <p className="text-sm text-gray-400 mt-1">{repo.description || "No description"}</p>
+                  
+                  <div className="mt-3 flex items-center flex-wrap gap-x-4 gap-y-2 text-sm text-gray-400">
+                    {repo.language && (
+                      <span className="flex items-center">
+                        <span 
+                          style={{ backgroundColor: repo.languageColor }} 
+                          className="w-3 h-3 rounded-full inline-block mr-2">
+                        </span>
+                        {repo.language}
+                      </span>
+                    )}
+                    <span>Created {timeAgo(repo.creation_date)}</span>
+                    {repo.license && <span>License: {repo.license}</span>}
+                  </div>
+
+                  {repo.tags && repo.tags.length > 0 && (
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {repo.tags.map((tag, tagIndex) => (
+                        <span
+                          key={tagIndex}
+                          className="px-2 py-1 text-xs rounded-md bg-indigo-900/50 text-indigo-300 border border-indigo-800"
+                        >
+                          #{tag}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
+              
               <div className="flex items-center space-x-4 mt-4">
                 <div className="flex items-center text-sm text-gray-400">
                   <Star className="h-4 w-4 mr-1 text-yellow-400" />
-                  {repo?.stars ||0}
+                  {repo.stars || 0}
                 </div>
                 <div className="flex items-center text-sm text-gray-400">
                   <GitFork className="h-4 w-4 mr-1" />
-                  {repo?.forks||0}
+                  {repo.forks || 0}
                 </div>
+               
               </div>
             </div>
           ))}
 
-<CreateRepositoryModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+          <CreateRepositoryModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
         </div>
       </div>
     </div>

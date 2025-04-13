@@ -100,8 +100,15 @@ export const repositoryController = {
 async update(req, res) {
   try {
     const { creator_id, repo_name } = req.params;
-    const { description, visibility, new_repo_name } = req.body;
-    console.log("hit update repo",req.body)
+    const { 
+      description, 
+      visibility, 
+      new_repo_name,
+      license,
+      language,
+      languageColor,
+      tags 
+    } = req.body;
 
     // Find repository with creator validation
     const repository = await Repository.findOne({
@@ -129,7 +136,7 @@ async update(req, res) {
     }
 
     // If new repo name is provided, check if it already exists
-    if (new_repo_name!=repository.repo_name) {
+    if (new_repo_name && new_repo_name !== repository.repo_name) {
       const existingRepo = await Repository.findOne({
         where: {
           creator_id: creator_id,
@@ -142,18 +149,23 @@ async update(req, res) {
       }
     }
 
-    // Update repository
+    // Update repository with all fields
     await repository.update({
       repo_name: new_repo_name || repository.repo_name,
       description: description || repository.description,
-      visibility: visibility || repository.visibility
+      visibility: visibility || repository.visibility,
+      license: license || repository.license,
+      language: language || repository.language,
+      languageColor: languageColor || repository.languageColor,
+      tags: tags || repository.tags // This will use the getter/setter defined in the model
     });
 
     res.json({
-      message: "true",
+      message: "Repository updated successfully",
       data: repository
     });
   } catch (error) {
+    console.error("Update error:", error);
     res.status(500).json({ error: error.message });
   }
 },
