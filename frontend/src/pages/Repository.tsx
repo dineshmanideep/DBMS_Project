@@ -3,9 +3,10 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Star, GitFork, Plus, GitBranch, Settings, Folder, File, Clock, Download, Shield, Info, ExternalLink, GitPullRequest, Users, AlertCircle } from 'lucide-react';
 import SkeletonLoader from '../components/SkeletonLoader';
 import { BASE_URL, useAuth } from '../context/AuthContext';
-import { Commit,Repository as repoType } from '../types/repository_types';
+import { Commit, Repository as repoType } from '../types/repository_types';
 import { timeAgo } from '../lib/timeAlgo';
 import AddFileModal from '../components/AddFileModal';
+import { marked } from 'marked';
 
 interface FileItem {
   file_name: string;
@@ -14,7 +15,7 @@ interface FileItem {
   commit_message: string;
   commit_timestamp: string;
   commit_creator_id: number;
-  username:string;
+  username: string;
 }
 
 interface CommitItems extends Commit {
@@ -24,84 +25,116 @@ interface CommitItems extends Commit {
 }
 
 export default function Repository() {
-  const { creator_id, repo_name,branch_name } = useParams();
+  const { creator_id, repo_name, branch_name } = useParams();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [currentBranch, setCurrentBranch] = useState('main');
-  const [repo, setRepo] = useState<repoType|null>()
+  const [repo, setRepo] = useState<repoType | null>()
   const [currentPath, setCurrentPath] = useState('');
   const [starStatus, setStarStatus] = useState(false);
-    const [fileItems, setFileItems] = useState<FileItem[]>([]);
-    const {user,getCurrentContributer,contributer}=useAuth();
-      const [isModalOpen, setIsModalOpen] = useState(false);
+  const [fileItems, setFileItems] = useState<FileItem[]>([]);
+  const { user, getCurrentContributer, contributer } = useAuth();
+  const [readmeContent, setReadmeContent] = useState<string>('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-    const fetchData= async()=>{
-      await fetchAllFiles();
-      await fetchRepo();
-      setLoading(false);
+  const fetchData = async () => {
+    await fetchAllFiles();
+    await fetchRepo();
+    setLoading(false);
+  }
+
+
+  const handleAddFile = async (file: globalThis.File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      const response = await fetch(`${BASE_URL}/file/save/${creator_id}/${repo_name}/${branch_name}`, {
+        method: 'POST',
+        credentials: 'include',
+        body: formData,
+      });
+
+      const result = await response.json();
+      if (response.ok) {
+        console.log('Upload success:', result);
+        await fetchAllFiles();
+        setIsModalOpen(false);
+      } else {
+        console.error('Upload failed:', result.error);
+      }
+    } catch (error) {
+      console.error('Upload error:', error);
     }
+    setIsModalOpen(false);
+  };
+  const fetchAllFiles = async () => {
+    try {
 
-    
-    const handleAddFile = async (file: globalThis.File) => {
-      const formData = new FormData();
-      formData.append('file', file);
-    
+      //fetch contributer
+      await getCurrentContributer(creator_id as string, repo_name as string);
+
+      const response = await fetch(`${BASE_URL}/file/all/${creator_id}/${repo_name}/${branch_name}/`, {
+        credentials: 'include'
+      });
+      const data = await response.json();
+     
+      setFileItems(data.data);
+      
+      console.log("files data", data);
+    } catch (error) {
+      console.log(error);
+    }
+  }
+  const fetchReadmeContent = async () => {
+    console.log("readme start")
+    const readmeFile = fileItems?.find(file => file.file_name.toLowerCase() === 'readme.md');
+    if (readmeFile) {
+      console.log("redme file",readmeFile);
       try {
-        const response = await fetch(`${BASE_URL}/file/save/${creator_id}/${repo_name}/${branch_name}`, {
-          method: 'POST',
-         credentials:'include',
-          body: formData,
-        });
-    
-        const result = await response.json();
+        const response = await fetch(
+          `${BASE_URL}/file/get/${creator_id}/${repo_name}/${branch_name}/${readmeFile.file_name}`,
+          { credentials: 'include' }
+        );
+        const data = await response.json();
         if (response.ok) {
-          console.log('Upload success:', result);
-          await fetchAllFiles();
-          setIsModalOpen(false);
-        } else {
-          console.error('Upload failed:', result.error);
+          setReadmeContent(data.content);
+          console.log("readme content",data);
         }
       } catch (error) {
-        console.error('Upload error:', error);
-      }
-      setIsModalOpen(false);
-    };
-    const fetchAllFiles = async () => {
-      try {
-
-    //fetch contributer
-         await getCurrentContributer(creator_id as string,repo_name as string);
-
-        const response = await fetch(`${BASE_URL}/file/all/${creator_id}/${repo_name}/${branch_name}/`, {
-          credentials: 'include'
-        });
-        const data = await response.json();
-        setFileItems(data.data);
-        console.log("files data", data);
-      } catch (error) {
-        console.log(error);
+        console.error('Failed to fetch README content:', error);
       }
     }
-
-    const fetchRepo= async()=>{
-      try {
-        const response = await fetch(`${BASE_URL}/repo/get/${creator_id}/${repo_name}/`, {
-          credentials: 'include'
-        });
-        const data = await response.json();
-        setRepo(data.data);
+  };
 
 
+  const fetchRepo = async () => {
+    try {
+      const response = await fetch(`${BASE_URL}/repo/get/${creator_id}/${repo_name}/`, {
+        credentials: 'include'
+      });
+      const data = await response.json();
+      setRepo(data.data);
 
-      } catch (error) {
-        console.log(error)
-      }
+
+
+    } catch (error) {
+      console.log(error)
     }
+  }
 
- 
+
   useEffect(() => {
     fetchData();
   }, []);
+
+  useEffect(() => {
+    if (fileItems?.some(file => file.file_name.toLowerCase() === 'readme.md')) {
+     fetchReadmeContent();
+   }
+    
+  }, [fileItems])
+  
 
   const handleStar = () => {
     setStarStatus(!starStatus);
@@ -145,43 +178,42 @@ export default function Repository() {
                 </div>
                 <p className="text-gray-300">{repo?.description}</p>
               </div>
-              
+
               <div className="flex flex-wrap gap-2">
-                <button 
+                <button
                   onClick={handleStar}
-                  className={`flex items-center space-x-1 px-4 py-2 rounded-md transition-all ${
-                    starStatus ? 'bg-yellow-700/30 text-yellow-400 border border-yellow-700' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                  }`}
+                  className={`flex items-center space-x-1 px-4 py-2 rounded-md transition-all ${starStatus ? 'bg-yellow-700/30 text-yellow-400 border border-yellow-700' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                    }`}
                 >
                   <Star size={16} className={starStatus ? "text-yellow-400" : ""} />
                   {/* <span>{starStatus ? repo?.stars + 1 : repo?.stars}</span> */}
                   <span>{starStatus ? (repo?.stars ?? 0) + 1 : repo?.stars ?? 0}</span>
                 </button>
-                
+
                 <button className="flex items-center space-x-1 px-4 py-2 bg-gray-700 rounded-md hover:bg-gray-600 transition-all">
                   <GitFork size={16} />
                   <span>{repo?.forks}</span>
                 </button>
-                
-               
+
+
               </div>
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
               <div className="flex items-center text-gray-400">
                 <div className="flex-col">
-              <button onClick={()=>navigate(`/${creator_id}/${repo_name}/branches`)}>
-                <GitBranch size={16} className="mr-2" />
-                Branches
-              </button>
-            </div>
+                  <button onClick={() => navigate(`/${creator_id}/${repo_name}/branches`)}>
+                    <GitBranch size={16} className="mr-2" />
+                    Branches
+                  </button>
+                </div>
               </div>
-              
+
               <div className="flex items-center text-gray-400">
                 <Clock size={16} className="mr-2" />
-                <span>Created { timeAgo(repo?.creation_date)}</span>
+                <span>Created {timeAgo(repo?.creation_date as string)}</span>
               </div>
-              
+
               <div className="flex items-center text-gray-400">
                 <Shield size={16} className="mr-2" />
                 <span>{repo?.license} License</span>
@@ -192,11 +224,11 @@ export default function Repository() {
 
         {/* Branch and path navigation */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
-         
-          
+
+
           <div className="flex gap-2">
-            
-              
+
+
 
             <button
               onClick={handleIssues}
@@ -223,29 +255,29 @@ export default function Repository() {
             </button>
 
             <button
-            onClick={() => setIsModalOpen(true)}
-            className="inline-flex items-center px-4 py-2 mx-64 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 transition-colors"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Add File
-          </button>
-            
-            
-
-            {contributer?.role=='Admin'&&(<>
-              {branch_name!='main'&&(<button 
-              onClick={handlePullRequests}
-              className="flex items-center space-x-1 px-3 py-2 bg-purple-600 hover:bg-purple-700 rounded-md transition-all"
-            ><GitPullRequest size={16} />
-              <span>Pull Requests</span>
-            </button>)}
-              <button
-              onClick={() => navigate(`/${creator_id}/${repo_name}/settings`)}
-              className="flex items-center space-x-1 px-3 py-2 bg-gray-700 rounded-md hover:bg-gray-600 transition-all"
+              onClick={() => setIsModalOpen(true)}
+              className="inline-flex items-center px-4 py-2 mx-64 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 transition-colors"
             >
-              <Settings size={16} />
-              <span>Settings</span>
+              <Plus className="h-4 w-4 mr-2" />
+              Add File
             </button>
+
+
+
+            {contributer?.role == 'Admin' && (<>
+              {branch_name != 'main' && (<button
+                onClick={handlePullRequests}
+                className="flex items-center space-x-1 px-3 py-2 bg-purple-600 hover:bg-purple-700 rounded-md transition-all"
+              ><GitPullRequest size={16} />
+                <span>Pull Requests</span>
+              </button>)}
+              <button
+                onClick={() => navigate(`/${creator_id}/${repo_name}/settings`)}
+                className="flex items-center space-x-1 px-3 py-2 bg-gray-700 rounded-md hover:bg-gray-600 transition-all"
+              >
+                <Settings size={16} />
+                <span>Settings</span>
+              </button>
             </>)}
           </div>
         </div>
@@ -268,7 +300,7 @@ export default function Repository() {
                     <File size={20} className="text-gray-400 mr-3" />
                     <span className="font-medium">{file.file_name}</span>
                   </div>
-                  
+
                   <div className="hidden md:flex items-center text-sm text-gray-400">
                     <span className="mr-4">{file.commit_message}</span>
                     <span className="flex items-center">
@@ -279,7 +311,7 @@ export default function Repository() {
                 </div>
               ))}
             </div>
-            
+
             {fileItems?.length === 0 && (
               <div className="flex flex-col items-center justify-center p-8 text-gray-500">
                 <Info size={48} className="mb-4 opacity-50" />
@@ -289,14 +321,14 @@ export default function Repository() {
             )}
           </div>
         )}
-        
+
         {/* README preview (if exists) */}
         {fileItems?.some(file => file.file_name.toLowerCase() === 'readme.md') && (
           <div className="mt-6 bg-gray-800 rounded-lg shadow-lg overflow-hidden border border-gray-700">
             <div className="border-b border-gray-700 p-4 flex justify-between items-center">
               <h2 className="text-xl font-semibold">README.md</h2>
-              <button 
-                onClick={() => navigate(`/${creator_id}/${repo_name}/${currentBranch}/README.md`)}
+              <button
+                onClick={() => navigate(`/${creator_id}/${repo_name}/${currentBranch}/${fileItems?.find(file => file.file_name.toLowerCase() === 'readme.md')?.file_name}`)}
                 className="text-indigo-400 hover:text-indigo-300 flex items-center"
               >
                 <ExternalLink size={16} className="mr-1" />
@@ -304,16 +336,13 @@ export default function Repository() {
               </button>
             </div>
             <div className="p-6 prose prose-invert max-w-none">
-              <h1>Project Title</h1>
-              <p>A brief description of what this project does and who it's for.</p>
-              
-              <h2>Installation</h2>
-              <p>Install dependencies with npm:</p>
-              <pre className="bg-gray-900 p-3 rounded-md">npm install</pre>
-              
-              <h2>Usage</h2>
-              <p>Start the development server:</p>
-              <pre className="bg-gray-900 p-3 rounded-md">npm run dev</pre>
+              {readmeContent ? (
+                <div dangerouslySetInnerHTML={{ __html: marked(readmeContent) }} />
+              ) : (
+                <div className="flex items-center justify-center p-4">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-500" />
+                </div>
+              )}
             </div>
           </div>
         )}

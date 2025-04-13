@@ -1,139 +1,104 @@
 import React, { useEffect, useState } from 'react';
-import { Pencil, Save, X, Lock, Github, MapPin, Mail, Globe, Calendar } from 'lucide-react';
+import { Pencil, Save, X, Lock, Github, MapPin, Mail, Globe, Calendar ,GitFork} from 'lucide-react';
 import { BASE_URL, useAuth } from '../context/AuthContext';
 import { useParams } from 'react-router-dom';
 import { User } from '../types/auth';
 import { timeAgo } from '../lib/timeAlgo';
-import { Repository,ContributerDetails } from '../types/repository_types';
+// import { Repository,ContributerDetails } from '../types/repository_types';
 // import Repository from './Repository';
+interface Repository {
+  repo_id: number;
+  creator_id: number;
+  repo_name: string;
+  description: string;
+  visibility: 'Public' | 'Private';
+  creation_date: string;
+  license: string;
+  language: string;
+  languageColor: string;
+  stars: number;
+  forks: number;
+  tags: string[];
+  User: {
+    username: string;
+  };
+}
 
-interface RepoItems extends ContributerDetails{
-  Repository:Repository
+interface ContributerDetails {
+  repo_id: number;
+  user_id: number;
+  role: 'Admin' | 'Write' | 'Read';
+  Repository: Repository;
+}
+interface RepoItems extends ContributerDetails {
+  Repository: Repository
 
 }
 
 export default function Profile() {
-  const {id} =useParams();
+  const { id } = useParams();
   const [isEditing, setIsEditing] = useState(false);
   const [authorized, setAuthorized] = useState<Boolean>(false);
-  const {user}=useAuth();
-  const [repos, setRepos] = useState<RepoItems[]|null>(null)
-  
+  const { user } = useAuth();
+  const [repos, setRepos] = useState<RepoItems[] | null>(null)
 
-  
+
+
 
   useEffect(() => {
     fetchUser();
     fetchRepos();
-    
+
   }, [])
-  
-  
-  const [userDetails, setUserDetails] = useState<User|null>(null);
+
+
+  const [userDetails, setUserDetails] = useState<User | null>(null);
   useEffect(() => {
-    if(id==user?.user_id){
+    if (id == user?.user_id) {
       setAuthorized(true);
     }
-  
-  }, [userDetails,id]);
 
-  const fetchUser= async()=>{
-    const res=await fetch(`${BASE_URL}/user/${id}`,{
-    credentials:'include'
-  })
-  const data=await res.json();
-  console.log("user data",data);
-  setUserDetails({...data.data});
+  }, [userDetails, id]);
+
+  const fetchUser = async () => {
+    const res = await fetch(`${BASE_URL}/user/${id}`, {
+      credentials: 'include'
+    })
+    const data = await res.json();
+    console.log("user data", data);
+    setUserDetails({ ...data.data });
 
   };
 
-  const fetchRepos=async()=>{
-    const res= await fetch(`${BASE_URL}/repo/specific/${id}`,{
-    
-      credentials:'include'
+  const fetchRepos = async () => {
+    const res = await fetch(`${BASE_URL}/repo/specific/${id}`, {
+
+      credentials: 'include'
     });
-    const data= await res.json();
-    console.log("repo details",data)
+    const data = await res.json();
+    console.log("repo details", data)
     setRepos(data.data)
 
   }
 
-  const [editedDetails, setEditedDetails] = useState({...userDetails} );
+  const [editedDetails, setEditedDetails] = useState({ ...userDetails });
 
   // Repository data from your desired profile
-  const publicRepositories = [
-    {
-      name: 'react-starter',
-      description: 'A modern React starter template with TypeScript and Tailwind CSS.',
-      stars: 128,
-      forks: 45,
-      language: 'TypeScript',
-      languageColor: '#2b7489',
-      updated: '3 days ago',
-      isPrivate: false,
-      tags: ['frontend', 'template', 'react']
-    },
-    {
-      name: 'node-api',
-      description: 'RESTful API boilerplate using Node.js and Express.',
-      stars: 89,
-      forks: 23,
-      language: 'JavaScript',
-      languageColor: '#f1e05a',
-      updated: '1 week ago',
-      isPrivate: false,
-      tags: ['backend', 'api', 'nodejs']
-    },
-  ];
 
-  const privateRepositories = [
-    {
-      name: 'personal-blog',
-      description: 'My personal blog built with Next.js and MDX.',
-      stars: 0,
-      forks: 0,
-      language: 'TypeScript',
-      languageColor: '#2b7489',
-      updated: '2 days ago',
-      isPrivate: true,
-      tags: ['blog', 'nextjs', 'personal']
-    },
-    {
-      name: 'finance-tracker',
-      description: 'Personal finance tracking application with data visualization.',
-      stars: 0,
-      forks: 0,
-      language: 'JavaScript',
-      languageColor: '#f1e05a',
-      updated: '5 days ago',
-      isPrivate: true,
-      tags: ['finance', 'dashboard', 'visualization']
-    },
-    {
-      name: 'portfolio-v2',
-      description: 'My updated portfolio website with Three.js animations.',
-      stars: 0,
-      forks: 0,
-      language: 'JavaScript',
-      languageColor: '#f1e05a',
-      updated: '2 weeks ago',
-      isPrivate: true,
-      tags: ['portfolio', 'threejs', 'webgl']
-    },
-  ];
+
 
   const handleEditToggle = () => {
     if (isEditing) {
       setUserDetails(editedDetails as User);
     } else {
-      setEditedDetails({...userDetails});
+      setEditedDetails({ ...userDetails });
     }
     setIsEditing(!isEditing);
   };
 
   const handleCancelEdit = () => {
     setIsEditing(false);
-    setEditedDetails({...userDetails} );
+    setEditedDetails({ ...userDetails });
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -144,30 +109,30 @@ export default function Profile() {
     });
   };
 
-  const handleEdit =async()=>{
+  const handleEdit = async () => {
     try {
       console.log("hit edit")
-      const res= await fetch(`${BASE_URL}/user/update/${userDetails?.user_id}`,{
-        method:'PUT',
+      const res = await fetch(`${BASE_URL}/user/update/${userDetails?.user_id}`, {
+        method: 'PUT',
         headers: {
-          'Content-Type': 'application/json',          
+          'Content-Type': 'application/json',
         },
-        credentials:'include',
+        credentials: 'include',
         body: JSON.stringify(editedDetails),
       })
-      const data=await res.json();
-      console.log("updated data",data);
+      const data = await res.json();
+      console.log("updated data", data);
       setUserDetails(editedDetails as User);
-      
+
     } catch (error) {
       console.log(error);
     }
-    finally{
+    finally {
 
       setIsEditing(false)
     }
-    
-    
+
+
 
   }
 
@@ -187,7 +152,7 @@ export default function Profile() {
                     className="h-24 w-24 rounded-full border-4 border-gray-800"
                   />
                 </div>
-                {(authorized&&!isEditing) && (
+                {(authorized && !isEditing) && (
                   <button
                     onClick={handleEditToggle}
                     className="absolute top-4 right-4 p-2 bg-gray-800 rounded-full hover:bg-gray-700 transition-colors"
@@ -275,7 +240,7 @@ export default function Profile() {
                     </div>
                     <div className="flex space-x-2 pt-2">
                       <button
-                        onClick={()=>{handleEditToggle(),handleEdit()}}
+                        onClick={() => { handleEditToggle(), handleEdit() }}
                         className="flex-1 flex items-center justify-center px-4 py-2 bg-indigo-600 hover:bg-indigo-700 rounded-md font-medium transition-colors"
                       >
                         <Save size={16} className="mr-2" onClick={handleEdit} />
@@ -295,15 +260,15 @@ export default function Profile() {
                 <div className="pt-16 p-6 text-center">
                   <h1 className="text-xl font-bold text-white">{userDetails?.full_name}</h1>
                   <p className="text-gray-400">@{userDetails?.username}</p>
-                  <p className="text-gray-300 mt-4">{userDetails?.bio||"No bio"}</p>
+                  <p className="text-gray-300 mt-4">{userDetails?.bio || "No bio"}</p>
                   <div className="mt-6 space-y-2 text-sm text-gray-400">
-                    <p><MapPin size={16} className="inline mr-2" /> {userDetails?.location||"texas"}</p>
+                    <p><MapPin size={16} className="inline mr-2" /> {userDetails?.location || "texas"}</p>
                     <p><Mail size={16} className="inline mr-2" /> {userDetails?.email}</p>
                     <p>
                       <Globe size={16} className="inline mr-2" />{' '}
                       <a href={userDetails?.website} target="_blank" rel="noopener noreferrer" className="text-indigo-400 hover:text-indigo-300">
                         {/* {userDetails?.website?.replace(/^https?:\/\//, '')} */}
-                        {userDetails?.website||"https://google.com"}
+                        {userDetails?.website || "https://google.com"}
                       </a>
                     </p>
                     <p><Calendar size={16} className="inline mr-2" /> Joined {timeAgo(userDetails?.registration_date as string)}</p>
@@ -323,17 +288,17 @@ export default function Profile() {
                   Private Repositories
                 </h2>
                 <span className="text-sm bg-gray-700 px-2 py-1 rounded-md text-gray-300">
-                  {repos?.filter((repo)=>{return repo.Repository.visibility=='Private'}).length} repos
+                  {repos?.filter(repo => repo.Repository.visibility === 'Private').length || 0} repos
                 </span>
               </div>
               <div className="divide-y divide-gray-700">
-              
-                {repos?.map((repo, index) => (repo.Repository.visibility=="Private"&&
-                  <div key={index} className="p-5 hover:bg-gray-750 transition-colors">
+                {repos?.filter(repo => repo.Repository.visibility === 'Private').map((repo) => (
+                  <div key={repo.Repository.repo_id} className="p-5 hover:bg-gray-750 transition-colors">
                     <div className="flex items-start justify-between">
                       <div>
                         <h3 className="text-lg font-medium">
-                          <a href="#" className="text-indigo-400 hover:text-indigo-300 transition-colors flex items-center">
+                          <a href={`/${repo.Repository.creator_id}/${repo.Repository.repo_name}`}
+                            className="text-indigo-400 hover:text-indigo-300 transition-colors flex items-center">
                             {repo.Repository.repo_name}
                             <span className="ml-2 px-2 py-0.5 text-xs font-medium rounded-full bg-gray-700 text-gray-300 flex items-center">
                               <Lock size={12} className="mr-1" />
@@ -341,28 +306,50 @@ export default function Profile() {
                             </span>
                           </a>
                         </h3>
-                        <p className="text-gray-400 text-sm mt-1">{repo?.Repository?.description||"description"}</p>
+                        <p className="text-gray-400 text-sm mt-1">{repo.Repository.description || "No description"}</p>
                         <div className="mt-3 flex items-center flex-wrap gap-x-4 gap-y-2 text-sm text-gray-400">
-                          <span className="flex items-center">
-                            <span style={{ backgroundColor: repo?.Repository.languageColor ||"yellow"}} className="w-3 h-3 rounded-full inline-block mr-2"></span>
-                            {repo?.Repository.language||"javascript"}
-                          </span>
-                          <span>Created {timeAgo(repo.Repository.creation_date)}</span>
-                        </div>
-                        <div className="mt-3 flex flex-wrap gap-2">
-                          {repo.Repository.tags?.map((tag, tagIndex) => (
-                            <span
-                              key={tagIndex}
-                              className="px-2 py-1 text-xs rounded-md bg-indigo-900/50 text-indigo-300 border border-indigo-800"
-                            >
-                              #{tag}
+                          {repo.Repository.language && (
+                            <span className="flex items-center">
+                              <span
+                                style={{ backgroundColor: repo.Repository.languageColor }}
+                                className="w-3 h-3 rounded-full inline-block mr-2">
+                              </span>
+                              {repo.Repository.language}
                             </span>
-                          ))}
+                          )}
+                          <span>Created {timeAgo(repo.Repository.creation_date)}</span>
+                          <span>License: {repo.Repository.license || 'None'}</span>
                         </div>
+                        {repo.Repository.tags && repo.Repository.tags.length > 0 && (
+                          <div className="mt-3 flex flex-wrap gap-2">
+                            {repo.Repository.tags.map((tag, tagIndex) => (
+                              <span
+                                key={tagIndex}
+                                className="px-2 py-1 text-xs rounded-md bg-indigo-900/50 text-indigo-300 border border-indigo-800"
+                              >
+                                #{tag}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex items-center space-x-4 text-sm text-gray-400">
+                        <span className="flex items-center">
+                          <GitFork className="h-4 w-4 mr-1" />
+                          {repo.Repository.forks}
+                        </span>
+                        <span className="flex items-center">
+                          ⭐ {repo.Repository.stars}
+                        </span>
                       </div>
                     </div>
                   </div>
                 ))}
+                {repos?.filter(repo => repo.Repository.visibility === 'Private').length === 0 && (
+                  <div className="p-6 text-center text-gray-400">
+                    No private repositories
+                  </div>
+                )}
               </div>
             </div>
 
@@ -374,43 +361,60 @@ export default function Profile() {
                   Public Repositories
                 </h2>
                 <span className="text-sm bg-gray-700 px-2 py-1 rounded-md text-gray-300">
-                {repos?.filter((repo)=>{return repo.Repository.visibility=='Public'}).length} repos
+                  {repos?.filter(repo => repo.Repository.visibility === 'Public').length || 0} repos
                 </span>
               </div>
               <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-               
-                {repos?.map((repo, index) => (repo.Repository.visibility=='Public'&&
-                  <div key={index} className="bg-gray-750 rounded-lg p-4 border border-gray-700 hover:border-gray-600 transition-colors">
+                {repos?.filter(repo => repo.Repository.visibility === 'Public').map((repo) => (
+                  <div key={repo.Repository.repo_id}
+                    className="bg-gray-750 rounded-lg p-4 border border-gray-700 hover:border-gray-600 transition-colors">
                     <h3 className="text-indigo-400 font-medium hover:text-indigo-300 cursor-pointer flex items-center">
-                      {repo.Repository?.repo_name}
+                      <a href={`/${repo.Repository.creator_id}/${repo.Repository.repo_name}`}>
+                        {repo.Repository.repo_name}
+                      </a>
                       <span className="ml-2 px-2 py-0.5 text-xs font-medium rounded-full bg-green-900 text-green-300 flex items-center">
                         <Github size={12} className="mr-1" />
                         Public
                       </span>
                     </h3>
-                    <p className="text-gray-400 text-sm mt-2">{repo.Repository.description||"missing des"}</p>
+                    <p className="text-gray-400 text-sm mt-2">{repo.Repository.description || "No description"}</p>
                     <div className="mt-4 flex items-center justify-between text-sm text-gray-400">
-                      <div className="flex items-center">
-                        <span style={{ backgroundColor: repo.Repository.languageColor ||"yellow" }} className="w-3 h-3 rounded-full inline-block mr-2"></span>
-                        {repo.Repository.language||"javascript"}
-                      </div>
+                      {repo.Repository.language && (
+                        <div className="flex items-center">
+                          <span
+                            style={{ backgroundColor: repo.Repository.languageColor }}
+                            className="w-3 h-3 rounded-full inline-block mr-2">
+                          </span>
+                          {repo.Repository.language}
+                        </div>
+                      )}
                       <div className="flex items-center space-x-4">
-                        <span>⭐ {repo.Repository.stars||"0"}</span>
-                        <span>🍴 {repo.Repository.forks||"1"}</span>
+                        <span>⭐ {repo.Repository.stars}</span>
+                        <span className="flex items-center">
+                          <GitFork className="h-4 w-4 mr-1" />
+                          {repo.Repository.forks}
+                        </span>
                       </div>
                     </div>
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      {repo.Repository.tags?.map((tag, tagIndex) => (
-                        <span
-                          key={tagIndex}
-                          className="px-2 py-1 text-xs rounded-md bg-indigo-900/50 text-indigo-300 border border-indigo-800"
-                        >
-                          #{tag}
-                        </span>
-                      ))}
-                    </div>
+                    {repo.Repository.tags && repo.Repository.tags.length > 0 && (
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        {repo.Repository.tags.map((tag, tagIndex) => (
+                          <span
+                            key={tagIndex}
+                            className="px-2 py-1 text-xs rounded-md bg-indigo-900/50 text-indigo-300 border border-indigo-800"
+                          >
+                            #{tag}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 ))}
+                {repos?.filter(repo => repo.Repository.visibility === 'Public').length === 0 && (
+                  <div className="col-span-2 text-center text-gray-400 py-8">
+                    No public repositories
+                  </div>
+                )}
               </div>
             </div>
 
