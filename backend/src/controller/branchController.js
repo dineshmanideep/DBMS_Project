@@ -1,25 +1,66 @@
 // const Branch = require('../models/Branch');
-import { Branch,Repository,User,Commit } from '../models/index.js';
+import { Branch,Repository,User,Commit,Contributor,File } from '../models/index.js';
 
 export const branchController = {
   // Create a new branch
   async create(req, res) {
     try {
-      const { name, repositoryId, commitHash } = req.body;
-      const repository = await Repository.findByPk(repositoryId);
+      const { repo_name,  creator_id } = req.params;
+     const {name}=req.body;
+    // Step 1: Find the repo
+    const repo = await Repository.findOne({
+      where: {
+        repo_name: repo_name,
+        creator_id: creator_id,
+      },
+    });
       
-      if (!repository) {
+      if (!repo) {
         return res.status(404).json({ message: 'Repository not found' });
       }
 
       const branch = await Branch.create({
         name,
-        repositoryId,
-        commitHash: commitHash || 'initial'
+        repo_id:repo.repo_id,
+        creator_id:req.user.user_id
       });
+
+      const commit=await Commit.create({
+        branch_id:branch.branch_id,
+        creator_id:req.user.user_id,
+        commit_message:"added README.md"
+      });
+
+      //parent_branch_id is null if the branch is main
+      branch.set({
+        last_commit_id:commit.commit_id,
+        base_commit_id:commit.commit_id
+      });
+    await branch.save();
+      const file= await File.create({
+        commit_id:commit.commit_id,
+        file_name:'README.md',
+        file_type:'text',
+        file_size:1024,
+        file_content:'This is the README file'
+      });
+      const contributer= await Contributor.findOne({
+        where:{
+          user_id:req.user.user_id,
+          repo_id:repo.repo_id
+        }
+      })
+      if(!contributer){
+        const newContributer =await Contributor.create({
+          repo_id:repo.repo_id,
+          user_id:req.user.user_id,
+          role:"Contributer"
+        })
+      }
 
       res.status(201).json(branch);
     } catch (error) {
+      console.log("erorr",error.message)
       res.status(500).json({ error: error.message });
     }
   },
@@ -58,9 +99,10 @@ export const branchController = {
         }
       ]
     });
-    
+      // console.log("data",branches.toString())
       res.json({message:"success",data:branches});
     } catch (error) {
+      console.log("error",error.message);
       res.status(500).json({ error: error.message });
     }
   },

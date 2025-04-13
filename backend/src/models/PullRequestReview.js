@@ -13,7 +13,8 @@ const PullRequestReview = sequelize.define('PullRequestReview', {
   review_comments: DataTypes.TEXT,
   review_date: {
     type: DataTypes.DATE,
-    defaultValue: DataTypes.NOW
+    defaultValue: DataTypes.NOW,
+    primaryKey:true
   }
 }, {
   tableName: 'Pull_Request_Reviews',

@@ -12,6 +12,7 @@ import branchRoutes from './routes/branchRoutes.js'
 import contributerRoutes from './routes/contributerRoutes.js'
 import UserRoutes from './routes/UserRoutes.js'
 import IssueRoutes from './routes/issueRoutes.js'
+import pullRequestRoutes from './routes/pullRequestRoutes.js';
 
 dotenv.config();
 
@@ -61,6 +62,7 @@ app.use('/branch',branchRoutes)
 app.use('/file',fileRoutes)
 app.use('/commit',commitRoutes)
 app.use('/contributer',contributerRoutes)
+app.use('/pull-requests', pullRequestRoutes);
 
 
 

@@ -1,7 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { GitPullRequest, Check, X, MessageSquare, GitCommit, Clock, User, Plus } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
+import { useAuth, BASE_URL } from '../context/AuthContext';
+import { timeAgo } from '../lib/timeAlgo';
+interface Branch {
+  branch_id: number;
+  name: string;
+}
+
 
 interface Comment {
   id: number;
@@ -11,14 +17,17 @@ interface Comment {
 }
 
 interface PullRequest {
-  id: number;
-  title: string;
-  description: string;
-  author: string;
-  status: 'Open' | 'Merged' | 'Closed';
-  createdAt: string;
-  commits: number;
-  comments: Comment[];
+  pr_id: number;
+  pr_title: string;
+  pr_description: string;
+  creator_id: string;
+  pr_status: 'Open' | 'Merged' | 'Closed';
+  creation_date: string;
+  base_branch_id:string;
+  target_branch_id:string;
+  User: { username: string };
+  baseBranch: { name: string };
+  targetBranch: { name: string }
 }
 
 export default function PullRequest() {
@@ -26,72 +35,111 @@ export default function PullRequest() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [showCreateForm, setShowCreateForm] = useState(false);
-  const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-  });
+  const [pullRequests, setPullRequests] = useState<PullRequest[]>([]);
   const [loading, setLoading] = useState(false);
-  const [pullRequests, setPullRequests] = useState<PullRequest[]>([
-    {
-      id: 1,
-      title: 'Add user authentication',
-      description: 'Implements user authentication using JWT tokens',
-      author: 'johndoe',
-      status: 'Open',
-      createdAt: '2 days ago',
-      commits: 3,
-      comments: [
-        { id: 1, author: 'janedoe', content: 'Looks good, but add error handling.', createdAt: '1 day ago' },
-        { id: 2, author: 'johndoe', content: 'Added error handling as requested.', createdAt: '12 hours ago' },
-      ],
-    },
-    {
-      id: 2,
-      title: 'Fix login page styling',
-      description: 'Updates the login page with new design',
-      author: 'janedoe',
-      status: 'Merged',
-      createdAt: '1 week ago',
-      commits: 1,
-      comments: [
-        { id: 1, author: 'mike_smith', content: 'Nice design changes!', createdAt: '6 days ago' },
-      ],
-    },
-  ]);
-  const [newComment, setNewComment] = useState<{ [key: number]: string }>({});
+  const [error, setError] = useState('');
+  const [branches, setBranches] = useState<Branch[]>([]);
+  const [formData, setFormData] = useState({
+    pr_title: '',
+    pr_description: '',
+    base_branch_id: '',
+    target_branch_id: ''
+  });
 
-  const handleCreatePR = (e: React.FormEvent) => {
+  const fetchBranches = async () => {
+    try {
+      const response = await fetch(
+        `${BASE_URL}/branch/list/${creator_id}/${repo_name}`,
+        { credentials: 'include' }
+      );
+      const data = await response.json();
+      if (response.ok) {
+        setBranches(data.data);
+      }
+    } catch (error) {
+      console.error('Failed to fetch branches:', error);
+    }
+  };
+
+  // Add fetchBranches to useEffect
+  useEffect(() => {
+    fetchPullRequests();
+    fetchBranches();
+  }, [creator_id, repo_name]);
+  const fetchPullRequests = async () => {
+    try {
+      const response = await fetch(
+        `${BASE_URL}/pull-requests/list/${creator_id}/${repo_name}`,
+        { credentials: 'include' }
+      );
+      const data = await response.json();
+      console.log("pull request",data.data)
+      if (response.ok) {
+        setPullRequests(data.data);
+      } else {
+        setError(data.message);
+      }
+    } catch (error) {
+      setError('Failed to fetch pull requests');
+    }
+  };
+
+  const handleCreatePR = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setTimeout(() => {
+    setError('');
+
+    try {
+      const response = await fetch(
+        `${BASE_URL}/pull-requests/create/${creator_id}/${repo_name}`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify(formData),
+        }
+      );
+
+      const data = await response.json();
+
+      if (response.ok) {
+        await fetchPullRequests();
+        setShowCreateForm(false);
+        setFormData({
+          pr_title: '',
+          pr_description: '',
+          base_branch_id: '',
+          target_branch_id: ''
+        });
+      } else {
+        setError(data.message);
+      }
+    } catch (error) {
+      setError('Failed to create pull request');
+    } finally {
       setLoading(false);
-      setShowCreateForm(false);
-      setFormData({ title: '', description: '' });
-      const newPR: PullRequest = {
-        id: pullRequests.length + 1,
-        title: formData.title,
-        description: formData.description,
-        author: user?.username || 'anonymous',
-        status: 'Open',
-        createdAt: 'just now',
-        commits: 0,
-        comments: [],
-      };
-      setPullRequests([...pullRequests, newPR]);
-    }, 1000);
+    }
   };
+
+  useEffect(() => {
+    fetchPullRequests();
+  }, [creator_id, repo_name]);
+
+
 
   const handleMergePR = (prId: number) => {
     console.log(`Merging PR #${prId}`);
     setPullRequests(pullRequests.map(pr =>
-      pr.id === prId ? { ...pr, status: 'Merged' } : pr
+      pr.pr_id === prId ? { ...pr, status: 'Merged' } : pr
     ));
   };
 
   const handleClosePR = (prId: number) => {
     console.log(`Closing PR #${prId}`);
     setPullRequests(pullRequests.map(pr =>
-      pr.id === prId ? { ...pr, status: 'Closed' } : pr
+      pr.pr_id === prId ? { ...pr, status: 'Closed' } : pr
     ));
   };
 
@@ -99,29 +147,6 @@ export default function PullRequest() {
     navigate(`/${creator_id}/${repo_name}/pull/${prId}`);
   };
 
-  const handleAddComment = (prId: number, e: React.FormEvent) => {
-    e.preventDefault();
-    const commentText = newComment[prId]?.trim();
-    if (!commentText) return;
-
-    setPullRequests(pullRequests.map(pr =>
-      pr.id === prId
-        ? {
-            ...pr,
-            comments: [
-              ...pr.comments,
-              {
-                id: pr.comments.length + 1,
-                author: user?.username || 'anonymous',
-                content: commentText,
-                createdAt: 'just now',
-              },
-            ],
-          }
-        : pr
-    ));
-    setNewComment(prev => ({ ...prev, [prId]: '' }));
-  };
 
   return (
     <div className="min-h-screen bg-gray-900 text-gray-100">
@@ -159,11 +184,55 @@ export default function PullRequest() {
                     <input
                       type="text"
                       id="title"
-                      value={formData.title}
-                      onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                      value={formData.pr_title}
+                      onChange={(e) => setFormData({ ...formData, pr_title: e.target.value })}
                       className="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm text-white"
                       placeholder="Pull request title"
                     />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label htmlFor="base_branch" className="block text-sm font-medium text-gray-300">
+                        Base Branch (target)
+                      </label>
+                      <select
+                        id="base_branch"
+                        value={formData.base_branch_id}
+                        onChange={(e) => setFormData({ ...formData, base_branch_id: e.target.value })}
+                        className="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm text-white"
+                        required
+                      >
+                        <option value="">Select base branch</option>
+                        {branches.map((branch) => (
+                          <option key={branch.branch_id} value={branch.branch_id}>
+                            {branch.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label htmlFor="target_branch" className="block text-sm font-medium text-gray-300">
+                        Compare Branch (source)
+                      </label>
+                      <select
+                        id="target_branch"
+                        value={formData.target_branch_id}
+                        onChange={(e) => setFormData({ ...formData, target_branch_id: e.target.value })}
+                        className="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm text-white"
+                        required
+                      >
+                        <option value="">Select compare branch</option>
+                        {branches.map((branch) => (
+                          <option
+                            key={branch.branch_id}
+                            value={branch.branch_id}
+                            disabled={branch.branch_id === Number(formData.base_branch_id)}
+                          >
+                            {branch.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
                   <div>
                     <label htmlFor="description" className="block text-sm font-medium text-gray-300">
@@ -172,12 +241,18 @@ export default function PullRequest() {
                     <textarea
                       id="description"
                       rows={4}
-                      value={formData.description}
-                      onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                      value={formData.pr_description}
+                      onChange={(e) => setFormData({ ...formData, pr_description: e.target.value })}
                       className="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm text-white"
                       placeholder="Describe your changes"
                     />
                   </div>
+                  {error && (
+                    <div className="text-red-400 text-sm">
+                      {error}
+                    </div>
+                  )}
+
                   <div className="flex justify-end space-x-3">
                     <button
                       type="button"
@@ -204,89 +279,33 @@ export default function PullRequest() {
         <div className="bg-gray-800 rounded-lg shadow-lg border border-gray-700 overflow-hidden">
           <div className="divide-y divide-gray-700">
             {pullRequests.map((pr) => (
-              <div key={pr.id} className="p-6 hover:bg-gray-750 transition-colors">
-                <div onClick={() => handleOpenPR(pr.id)} className="cursor-pointer">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <h3 className="text-lg font-medium text-white">{pr.title}</h3>
-                      <p className="mt-1 text-sm text-gray-400">{pr.description}</p>
-                      <div className="mt-2 flex items-center flex-wrap gap-x-4 gap-y-1 text-sm text-gray-400">
-                        <span>#{pr.id}</span>
-                        <span className="flex items-center">
-                          <User size={14} className="mr-1" />
-                          {pr.author}
-                        </span>
-                        <span className="flex items-center">
-                          <Clock size={14} className="mr-1" />
-                          {pr.createdAt}
-                        </span>
-                        <span className="flex items-center">
-                          <GitCommit size={14} className="mr-1" />
-                          {pr.commits} commits
-                        </span>
-                        <span className="flex items-center">
-                          <MessageSquare size={14} className="mr-1" />
-                          {pr.comments.length} comments
-                        </span>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      {pr.status === 'Open' && user?.username === 'testuser' && (
-                        <>
-                          <button
-                            onClick={(e) => { e.stopPropagation(); handleMergePR(pr.id); }}
-                            className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-white bg-green-700 hover:bg-green-600 transition-colors"
-                          >
-                            <Check className="h-4 w-4 mr-1" />
-                            Merge
-                          </button>
-                          <button
-                            onClick={(e) => { e.stopPropagation(); handleClosePR(pr.id); }}
-                            className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-white bg-red-700 hover:bg-red-600 transition-colors"
-                          >
-                            <X className="h-4 w-4 mr-1" />
-                            Close
-                          </button>
-                        </>
-                      )}
-                      <span
-                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          pr.status === 'Open'
-                            ? 'bg-green-900 text-green-300'
-                            : pr.status === 'Merged'
-                            ? 'bg-purple-900 text-purple-300'
-                            : 'bg-red-900 text-red-300'
-                        }`}
-                      >
-                        {pr.status}
+              <div key={pr.pr_id} className="p-6 hover:bg-gray-750 transition-colors" onClick={()=>navigate(`/${creator_id}/${repo_name}/pull/${pr.pr_id}`)}>
+                <div className="flex items-start justify-between">
+                  <div>
+                    <h3 className="text-lg font-medium text-white">{pr.pr_title}</h3>
+                    <p className="mt-1 text-sm text-gray-400">{pr.pr_description}</p>
+                    <div className="mt-2 flex items-center space-x-4 text-sm text-gray-400">
+                      <span>#{pr.pr_id}</span>
+                      <span className="flex items-center">
+                        <User size={14} className="mr-1" />
+                        {pr.User?.username}
+                      </span>
+                      <span className="flex items-center">
+                        <Clock size={14} className="mr-1" />
+                        {timeAgo(pr.creation_date)}
                       </span>
                     </div>
                   </div>
-                </div>
-
-                {/* Comment Section for Each PR */}
-                <div className="mt-4 p-4 bg-gray-750 rounded-md border border-gray-700">
-                  <h4 className="text-sm font-medium text-gray-200 mb-2">Comments</h4>
-                  {pr.comments.map((comment) => (
-                    <div key={comment.id} className="mb-2 text-sm text-gray-300">
-                      <span className="font-medium">{comment.author}</span> ({comment.createdAt}): {comment.content}
-                    </div>
-                  ))}
-                  <form onSubmit={(e) => { e.stopPropagation(); handleAddComment(pr.id, e); }} className="mt-2 flex gap-2">
-                    <input
-                      type="text"
-                      value={newComment[pr.id] || ''}
-                      onChange={(e) => setNewComment(prev => ({ ...prev, [pr.id]: e.target.value }))}
-                      placeholder="Add a comment..."
-                      className="flex-1 bg-gray-700 border border-gray-600 rounded-md px-3 py-1 text-white focus:outline-none focus:ring-indigo-500"
-                    />
-                    <button
-                      type="submit"
-                      className="px-2 py-1 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors"
-                    >
-                      <Plus size={16} />
-                    </button>
-                  </form>
+                  <div>
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${pr.pr_status === 'Open'
+                        ? 'bg-green-900 text-green-300'
+                        : pr.pr_status === 'Merged'
+                          ? 'bg-purple-900 text-purple-300'
+                          : 'bg-red-900 text-red-300'
+                      }`}>
+                      {pr.pr_status}
+                    </span>
+                  </div>
                 </div>
               </div>
             ))}

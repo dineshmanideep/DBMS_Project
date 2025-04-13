@@ -17,6 +17,9 @@ export const getAllIssues = async (req, res) => {
        
 
         const issues = await Issue.findAll({
+            where:{
+            repo_id:repository.repo_id
+            },
           
             include: [{
                 model: User,

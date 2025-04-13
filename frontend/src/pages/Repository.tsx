@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Star, GitFork, Eye, GitBranch, Settings, Folder, File, Clock, Download, Shield, Info, ExternalLink, GitPullRequest, Users, AlertCircle } from 'lucide-react';
+import { Star, GitFork, Plus, GitBranch, Settings, Folder, File, Clock, Download, Shield, Info, ExternalLink, GitPullRequest, Users, AlertCircle } from 'lucide-react';
 import SkeletonLoader from '../components/SkeletonLoader';
 import { BASE_URL, useAuth } from '../context/AuthContext';
 import { Commit,Repository as repoType } from '../types/repository_types';
 import { timeAgo } from '../lib/timeAlgo';
+import AddFileModal from '../components/AddFileModal';
 
 interface FileItem {
   file_name: string;
@@ -32,6 +33,7 @@ export default function Repository() {
   const [starStatus, setStarStatus] = useState(false);
     const [fileItems, setFileItems] = useState<FileItem[]>([]);
     const {user,getCurrentContributer,contributer}=useAuth();
+      const [isModalOpen, setIsModalOpen] = useState(false);
 
     const fetchData= async()=>{
       await fetchAllFiles();
@@ -40,12 +42,35 @@ export default function Repository() {
     }
 
     
-
+    const handleAddFile = async (file: globalThis.File) => {
+      const formData = new FormData();
+      formData.append('file', file);
+    
+      try {
+        const response = await fetch(`${BASE_URL}/file/save/${creator_id}/${repo_name}/${branch_name}`, {
+          method: 'POST',
+         credentials:'include',
+          body: formData,
+        });
+    
+        const result = await response.json();
+        if (response.ok) {
+          console.log('Upload success:', result);
+          await fetchAllFiles();
+          setIsModalOpen(false);
+        } else {
+          console.error('Upload failed:', result.error);
+        }
+      } catch (error) {
+        console.error('Upload error:', error);
+      }
+      setIsModalOpen(false);
+    };
     const fetchAllFiles = async () => {
       try {
 
     //fetch contributer
-         await getCurrentContributer(creator_id ,repo_name);
+         await getCurrentContributer(creator_id as string,repo_name as string);
 
         const response = await fetch(`${BASE_URL}/file/all/${creator_id}/${repo_name}/${branch_name}/`, {
           credentials: 'include'
@@ -73,54 +98,7 @@ export default function Repository() {
       }
     }
 
-  // Mock repository data - replace with API call
-  // const mockRepo = {
-  //   name: repo_name,
-  //   description: 'A modern React starter template with TypeScript and Tailwind CSS',
-  //   visibility: 'Public',
-  //   stars: 128,
-  //   forks: 45,
-  //   watchers: 67,
-  //   branches: ['main', 'develop', 'feature/user-auth', 'bugfix/login'],
-  //   license: 'MIT',
-  //   language: 'TypeScript',
-  //   languageColor: '#2b7489',
-  //   lastUpdated: '3 days ago',
-  // };
-
-  // Mock files data - replace with API call
-  // const mockFiles: RepoFile[] = [
-  //   {
-  //     name: 'src',
-  //     type: 'file',
-  //     lastCommit: 'Update component structure',
-  //     lastCommitDate: '3 days ago',
-  //     lastCommitAuthor: 'johndoe',
-  //   },
-  //   {
-  //     name: 'package.json',
-  //     type: 'file',
-  //     lastCommit: 'Update dependencies',
-  //     lastCommitDate: '1 week ago',
-  //     lastCommitAuthor: 'janedoe',
-  //   },
-  //   {
-  //     name: 'README.md',
-  //     type: 'file',
-  //     lastCommit: 'Add installation instructions',
-  //     lastCommitDate: '2 weeks ago',
-  //     lastCommitAuthor: 'johndoe',
-  //   },
-  //   {
-  //     name: 'tsconfig.json',
-  //     type: 'file',
-  //     lastCommit: 'Configure TypeScript options',
-  //     lastCommitDate: '1 month ago',
-  //     lastCommitAuthor: 'johndoe',
-  //   },
-  // ];
-
-  // Simulate loading data
+ 
   useEffect(() => {
     fetchData();
   }, []);
@@ -185,10 +163,7 @@ export default function Repository() {
                   <span>{repo?.forks}</span>
                 </button>
                 
-                <button className="flex items-center space-x-1 px-4 py-2 bg-gray-700 rounded-md hover:bg-gray-600 transition-all">
-                  <Eye size={16} />
-                  <span>{repo?.watchers}</span>
-                </button>
+               
               </div>
             </div>
             
@@ -217,42 +192,7 @@ export default function Repository() {
 
         {/* Branch and path navigation */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
-          {/* <div className="flex items-center flex-wrap gap-2">
-            <div className="relative">
-              <select
-                value={currentBranch}
-                onChange={(e) => setCurrentBranch(e.target.value)}
-                className="appearance-none bg-gray-700 border border-gray-600 text-white py-2 px-4 pr-8 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
-              >
-                {mockRepo.branches.map(branch => (
-                  <option key={branch} value={branch}>{branch}</option>
-                ))}
-              </select>
-              <GitBranch size={16} className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" />
-            </div>
-            
-            Breadcrumb navigation
-            <div className="flex items-center overflow-x-auto whitespace-nowrap py-2 px-3 bg-gray-800 rounded-md border border-gray-700">
-              <button 
-                onClick={() => handlePathChange('')}
-                className="text-indigo-400 hover:text-indigo-300 transition-colors"
-              >
-                {repo_name}
-              </button>
-              
-              {pathParts.map((part, i) => (
-                <React.Fragment key={i}>
-                  <span className="mx-2 text-gray-500">/</span>
-                  <button
-                    onClick={() => handlePathChange(pathParts.slice(0, i + 1).join('/'))}
-                    className="text-indigo-400 hover:text-indigo-300 transition-colors"
-                  >
-                    {part}
-                  </button>
-                </React.Fragment>
-              ))}
-            </div>
-          </div> */}
+         
           
           <div className="flex gap-2">
             
@@ -281,6 +221,14 @@ export default function Repository() {
               <Download size={16} />
               <span>Clone</span>
             </button>
+
+            <button
+            onClick={() => setIsModalOpen(true)}
+            className="inline-flex items-center px-4 py-2 mx-64 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 transition-colors"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Add File
+          </button>
             
             
 
@@ -370,6 +318,13 @@ export default function Repository() {
           </div>
         )}
       </div>
+      {isModalOpen && (
+        <AddFileModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          onFileSelected={handleAddFile}
+        />
+      )}
     </div>
   );
 }

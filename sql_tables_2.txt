@@ -162,7 +162,7 @@ pr_id INT,
 reviewer_id INT,
 review_comments TEXT,
 review_date DATETIME DEFAULT CURRENT_TIMESTAMP,
-PRIMARY KEY (pr_id, reviewer_id),
+PRIMARY KEY (pr_id, reviewer_id,review_date),
 FOREIGN KEY (pr_id) REFERENCES Pull_Requests(pr_id) ON DELETE CASCADE,
 FOREIGN KEY (reviewer_id) REFERENCES Users(user_id) ON DELETE CASCADE
 );
@@ -195,3 +195,5 @@ INSERT INTO Pull_Request_Reviews (pr_id, reviewer_id, review_comments) VALUES
 (1, 1, 'Looks good overall'),
 (2, 1, 'Needs some cleanup'),
 (3, 5, 'Security patch verified');
+
+
