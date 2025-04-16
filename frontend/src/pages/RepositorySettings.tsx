@@ -150,20 +150,34 @@ export default function RepositorySettings() {
           })
         }
       );
-
-      if (response.ok) {
-        await fetchContributors();
-        setShowAddContributor(false);
-        setNewContributor({ creator_id: '', role: 'Contributor' });
-      }
+  
       const data = await response.json();
-      console.log("add user", data);
-      toast.success("Added Contributer")
-
+  
+      if (!response.ok) {
+        // Handle different error cases
+        switch (response.status) {
+          case 404:
+            throw new Error(data.message || 'User not found');
+          case 400:
+            throw new Error(data.message || 'Invalid request');
+          case 403:
+            throw new Error(data.message || 'Not authorized to add contributors');
+          case 409:
+            throw new Error(data.message || 'User is already a contributor');
+          default:
+            throw new Error(data.message || 'Failed to add contributor');
+        }
+      }
+  
+      // Success case
+      await fetchContributors();
+      setShowAddContributor(false);
+      setNewContributor({ creator_id: '', role: 'Contributor' });
+      toast.success("Successfully added contributor");
+  
     } catch (error) {
-      console.log(error)
-      setError(`'Failed to add contributor'`);
-      toast.error("failed to add contributer")
+      console.error('Add contributor error:', error);
+      toast.error(error.message || 'Failed to add contributor');
     }
   };
 
