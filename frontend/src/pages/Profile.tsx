@@ -4,6 +4,7 @@ import { BASE_URL, useAuth } from '../context/AuthContext';
 import { useParams } from 'react-router-dom';
 import { User } from '../types/auth';
 import { timeAgo } from '../lib/timeAlgo';
+import toast from 'react-hot-toast';
 // import { Repository,ContributerDetails } from '../types/repository_types';
 // import Repository from './Repository';
 interface Repository {
@@ -111,7 +112,8 @@ export default function Profile() {
 
   const handleEdit = async () => {
     try {
-      console.log("hit edit")
+      console.log("hit edit");
+      console.log(editedDetails);
       const res = await fetch(`${BASE_URL}/user/update/${userDetails?.user_id}`, {
         method: 'PUT',
         headers: {
@@ -124,8 +126,12 @@ export default function Profile() {
       console.log("updated data", data);
       setUserDetails(editedDetails as User);
 
+      toast.success("Updated Profile")
+      
+
     } catch (error) {
       console.log(error);
+      toast.error("Failed to Update Profile")
     }
     finally {
 
@@ -145,13 +151,22 @@ export default function Profile() {
             <div className="bg-gray-800 rounded-xl shadow-lg border border-gray-700 overflow-hidden">
               <div className="relative">
                 <div className="h-24 bg-gradient-to-r from-indigo-600 to-purple-600"></div>
-                <div className="absolute -bottom-12 left-1/2 transform -translate-x-1/2">
+                {(authorized && !isEditing) ? <div className="absolute -bottom-12 left-1/2 transform -translate-x-1/2">
                   <img
-                    src={`https://ui-avatars.com/api/?name=${encodeURIComponent(userDetails?.full_name)}`}
+                    src={userDetails?.avatar||`https://ui-avatars.com/api/?name=${encodeURIComponent(userDetails?.full_name)}`}
                     alt="Profile"
                     className="h-24 w-24 rounded-full border-4 border-gray-800"
                   />
-                </div>
+                </div> 
+                :
+                 <div className="absolute -bottom-12 left-1/2 transform -translate-x-1/2">
+                  <img
+                    src={editedDetails.avatar||`https://ui-avatars.com/api/?name=${encodeURIComponent(userDetails?.full_name)}`}
+                    alt="Profile"
+                    className="h-24 w-24 rounded-full border-4 border-gray-800"
+                  />
+                </div>}
+                
                 {(authorized && !isEditing) && (
                   <button
                     onClick={handleEditToggle}
@@ -238,6 +253,18 @@ export default function Profile() {
                         className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white"
                       />
                     </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-400 mb-1">
+                        Avatar Url
+                      </label>
+                      <input
+                        type="url"
+                        name="avatar"
+                        value={editedDetails?.avatar}
+                        onChange={handleChange}
+                        className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white"
+                      />
+                    </div>
                     <div className="flex space-x-2 pt-2">
                       <button
                         onClick={() => { handleEditToggle(), handleEdit() }}
@@ -260,17 +287,18 @@ export default function Profile() {
                 <div className="pt-16 p-6 text-center">
                   <h1 className="text-xl font-bold text-white">{userDetails?.full_name}</h1>
                   <p className="text-gray-400">@{userDetails?.username}</p>
-                  <p className="text-gray-300 mt-4">{userDetails?.bio || "No bio"}</p>
+                  {userDetails?.bio &&<p className="text-gray-300 mt-4">{userDetails?.bio}</p> }
+                  
                   <div className="mt-6 space-y-2 text-sm text-gray-400">
-                    <p><MapPin size={16} className="inline mr-2" /> {userDetails?.location || "texas"}</p>
-                    <p><Mail size={16} className="inline mr-2" /> {userDetails?.email}</p>
-                    <p>
+                    {userDetails?.location && <p><MapPin size={16} className="inline mr-2" /> {userDetails?.location}</p>}
+                    {userDetails?.email && <p><Mail size={16} className="inline mr-2" /> {userDetails?.email}</p>}
+                    {userDetails?.website &&<p>
                       <Globe size={16} className="inline mr-2" />{' '}
                       <a href={userDetails?.website} target="_blank" rel="noopener noreferrer" className="text-indigo-400 hover:text-indigo-300">
-                        {/* {userDetails?.website?.replace(/^https?:\/\//, '')} */}
-                        {userDetails?.website || "https://google.com"}
+                        {userDetails?.website}
                       </a>
-                    </p>
+                    </p>}
+                    
                     <p><Calendar size={16} className="inline mr-2" /> Joined {timeAgo(userDetails?.registration_date as string)}</p>
                   </div>
                 </div>

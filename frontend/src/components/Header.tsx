@@ -3,7 +3,6 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Search, Bell, User, LogOut, Plus, ChevronDown } from 'lucide-react';
 import ThemeToggle from './ThemeToggle';
-
 export default function Header() {
   const { user, logout,getCurrentUser } = useAuth();
   const navigate = useNavigate();
@@ -50,42 +49,32 @@ export default function Header() {
 
           </div>
 
-          <div className="flex-1 max-w-md mx-4">
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Search size={18} className="text-gray-400" />
-              </div>
-              <input
-                type="text"
-                placeholder="Search..."
-                className="block w-full pl-10 pr-3 py-2 border border-gray-700 rounded-md bg-gray-700 text-gray-200 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-              />
-            </div>
-          </div>
+          
 
           <div className="flex items-center space-x-4">
             <ThemeToggle />
-            <button className="text-gray-300 hover:text-white">
+            {/* <button className="text-gray-300 hover:text-white">
               <Bell size={20} />
-            </button>
-            <div className="relative">
+            </button> */}
+            {/* <div className="relative">
               <button className="flex items-center space-x-1 text-gray-300 hover:text-white">
                 <Plus size={20} />
                 <ChevronDown size={16} />
               </button>
-              {/* Dropdown menu for creating new repo, etc. */}
-            </div>
-            <div className="relative">
+            </div> */}
+            {!!user&&(<>
+              <div className="relative">
               <button className="flex items-center space-x-2 text-gray-300 hover:text-white">
                 <img onClick={()=>navigate(`/profile/${user?.user_id}`)}
                   src={user?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.full_name)}`}
                   alt="User avatar"
                   className="h-8 w-8 rounded-full"
                 />
-                <ChevronDown size={16} />
               </button>
               {/* User dropdown menu */}
             </div>
+            </>)}
+            
           </div>
         </div>
       </div>

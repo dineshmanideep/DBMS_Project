@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { LogIn, Mail, Lock, AlertCircle } from 'lucide-react';
 import { FaGithub } from 'react-icons/fa';
+import toast from 'react-hot-toast';
 
 
 export default function Login() {
@@ -31,8 +32,9 @@ export default function Login() {
     try {
       await login(formData.email, formData.password);
       navigate('/');
-    } catch (err) {
-      setError('Invalid email or password');
+    } catch (error) {
+     toast.error(error.message||'Failed to login');
+     setError(error.message||'Failed to login');
     } finally {
       setIsLoading(false);
     }
@@ -98,27 +100,7 @@ export default function Login() {
             </div>
           </div>
 
-          <div className="flex items-center justify-between">
-            <div className="flex items-center">
-              <input
-                id="remember-me"
-                name="remember-me"
-                type="checkbox"
-                checked={formData.rememberMe}
-                onChange={(e) => setFormData({ ...formData, rememberMe: e.target.checked })}
-                className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-700 rounded bg-gray-700"
-              />
-              <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-300">
-                Remember me
-              </label>
-            </div>
-            
-            <div className="text-sm">
-              <Link to="/forgot-password" className="font-medium text-indigo-400 hover:text-indigo-300 transition-colors">
-                Forgot your password?
-              </Link>
-            </div>
-          </div>
+         
 
           {error && (
             <div className="bg-red-900/50 border border-red-800 text-red-300 px-4 py-3 rounded-md text-sm flex items-center">

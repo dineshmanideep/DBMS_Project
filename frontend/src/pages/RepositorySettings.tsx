@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Settings, UserPlus, Trash2, Users, Lock, Globe, AlertTriangle, ChevronLeft } from 'lucide-react';
 import { ContributerDetails } from '../types/repository_types';
 import { BASE_URL, useAuth } from '../context/AuthContext';
+import toast from 'react-hot-toast';
 // Add this at the top of your file after imports
 const LANGUAGE_COLORS = {
   JavaScript: '#f1e05a',
@@ -81,7 +82,9 @@ export default function RepositorySettings() {
         { credentials: 'include' }
       );
       const data = await response.json();
+      console.log("contributers ",data.data.contributors)
       if (data.message === "Successfully retrieved contributors") {
+
         setContributors(data.data.contributors);
       }
     } catch (error) {
@@ -124,10 +127,12 @@ export default function RepositorySettings() {
           navigate(`/${creator_id}/${repoDetails.repo_name}/settings`);
         }
         setRepoDetails(prev => ({ ...prev, ...data.data }));
+        toast.success("updated settings")
         setChange(false);
       }
     } catch (error) {
       setError('Failed to update repository settings');
+      toast.error("Failed to update repository settings")
     }
   };
 
@@ -153,10 +158,12 @@ export default function RepositorySettings() {
       }
       const data = await response.json();
       console.log("add user", data);
+      toast.success("Added Contributer")
 
     } catch (error) {
       console.log(error)
       setError(`'Failed to add contributor'`);
+      toast.error("failed to add contributer")
     }
   };
 
@@ -194,9 +201,11 @@ export default function RepositorySettings() {
 
       if (response.ok) {
         await fetchContributors();
+        toast.success("Removed Contributer")
       }
     } catch (error) {
       setError('Failed to remove contributor');
+      toast.error("removed contributer")
     }
   };
 
@@ -204,6 +213,8 @@ export default function RepositorySettings() {
 
   const handleDeleteRepository = async () => {
     if (deleteConfirmation !== repo_name) {
+      toast.error("Name didnt match")
+      setDeleteConfirmation("")
       setShowDeleteWarning(true);
       return;
     }
@@ -218,10 +229,12 @@ export default function RepositorySettings() {
       );
 
       if (response.ok) {
+        toast.success("Deleted the repository")
         navigate('/');
       }
     } catch (error) {
       setError('Failed to delete repository');
+      toast.error("Failed to delete the repository")
     }
   };
 
@@ -250,15 +263,7 @@ export default function RepositorySettings() {
     );
   }
 
-  // ...existing imports and component code...
-
-  // Add this after the handleDeleteRepository function and before the return statement
-
-
-  // Add loading state handler
-
-
-  // Add error state handler
+  
   if (error) {
     return (
       <div className="min-h-screen bg-gray-900 text-gray-100 flex items-center justify-center">
@@ -502,7 +507,7 @@ export default function RepositorySettings() {
                 >
                   <div className="flex items-center space-x-3">
                     <img
-                      src={`https://ui-avatars.com/api/?name=${encodeURIComponent(contributor.username)}`}
+                      src={contributor?.avatar||`https://ui-avatars.com/api/?name=${encodeURIComponent(contributor.username)}`}
                       alt={contributor.username}
                       className="h-10 w-10 rounded-full"
                     />

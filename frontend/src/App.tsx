@@ -19,13 +19,16 @@ import Issues from './pages/Issues';
 import PullRequestDetail from './pages/PullRequestDetails';
 import RepoContributors from './pages/RepoContributors';
 import IssueForm from './pages/IssueForm';
+import { Toaster } from 'react-hot-toast';
 
 function App() {
   return (
     <AuthProvider>
       <Router>
-        <div className="min-h-screen bg-gray-900 text-gray-100">
+        <Toaster/>
+        <div className="min-h-screen bg-gray-900 text-gray-100 ">
           <Header />
+
           <main>
             <Routes>
               <Route path="/" element={<Home />} />

@@ -1,5 +1,6 @@
 import React, { useState, ChangeEvent, FormEvent } from 'react';
 import { BASE_URL } from '../context/AuthContext';
+import toast from 'react-hot-toast';
 
 interface CreateRepositoryModalProps {
   isOpen: boolean;
@@ -49,11 +50,13 @@ const CreateRepositoryModal: React.FC<CreateRepositoryModalProps> = ({ isOpen, o
       }
 
       const data = await response.json();
+      toast.success("Created a repo")
       setIsSubmitting(false);
       onClose();
       return data;
     } catch (err: any) {
       setError(err.message);
+      toast.error(err.message)
       setIsSubmitting(false);
     }
   };

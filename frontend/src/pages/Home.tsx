@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Plus, GitFork, Star, Lock, Github } from 'lucide-react';
+import { Plus, GitFork, Star, Lock, Github ,Search} from 'lucide-react';
 import { BASE_URL } from '../context/AuthContext';
 import react,{ useEffect,useState } from 'react';
 import { timeAgo } from '../lib/timeAlgo';
@@ -27,6 +27,8 @@ interface Repository {
 export default function Home() {
   const navigate = useNavigate();
   const [repos, setRepos] = useState<Repository[]|null>(null)
+  const [filteredrepos, setFilteredrepos] = useState<Repository[]|null>(null)
+  const [search, setSearch] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { user } = useAuth();
 
@@ -39,17 +41,49 @@ export default function Home() {
     console.log(data);
     setRepos(data.data);
   }
+
+  useEffect(() => {
+    if (!repos) return;
+    
+    const filtered = repos.filter(repo => 
+      repo.repo_name.toLowerCase().includes(search.toLowerCase()) ||
+      repo.description?.toLowerCase().includes(search.toLowerCase()) ||
+      repo.language?.toLowerCase().includes(search.toLowerCase()) ||
+      repo.tags?.some(tag => tag.toLowerCase().includes(search.toLowerCase()))
+    );
+    
+    setFilteredrepos(filtered);
+  }, [repos, search]);
+  
   
   
   useEffect(() => {
     fetchRepos(); 
   }, [isModalOpen])
 
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearch(e.target.value);
+  };
+
   return (
     <div className="min-h-screen bg-gray-900 text-gray-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold text-white">All Repositories</h1>
+          <h1 className="text-3xl font-bold text-white">Public Repositories</h1>
+          <div className="flex-1 max-w-md mx-4">
+                      <div className="relative">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                          <Search size={18} className="text-gray-400" />
+                        </div>
+                        <input
+                          type="text"
+                          value={search}
+                          onChange={handleSearch}
+                          placeholder="Search..."
+                          className="block w-full pl-10 pr-3 py-2 border border-gray-700 rounded-md bg-gray-700 text-gray-200 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                        />
+                      </div>
+                    </div>
           <button
             onClick={() => setIsModalOpen(true)}
             className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 transition-colors"
@@ -59,7 +93,7 @@ export default function Home() {
           </button>
         </div>
  <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {repos?.map((repo) => (
+          {filteredrepos?.map((repo) => (
             <div
               key={repo.repo_id}
               className="bg-gray-800 rounded-lg shadow-lg border border-gray-700 p-6 hover:shadow-xl transition-shadow duration-200"
