@@ -5,7 +5,7 @@ import SkeletonLoader from '../components/SkeletonLoader';
 import { BASE_URL } from '../context/AuthContext';
 
 export default function FileView() {
-  const { creator_id, repo_name, branch_name, file_name } = useParams();
+  const { creator_id, repo_name, branch_name, file_name ,commit_id} = useParams();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [fileContent, setFileContent] = useState('');
@@ -23,8 +23,10 @@ export default function FileView() {
   }, [file_name, branch_name]);
 
   const fetchFileContent = async () => {
+
+    const url = (commit_id)?`${BASE_URL}/file/get/${creator_id}/${repo_name}/${branch_name}/${file_name}/${commit_id}`:`${BASE_URL}/file/get/${creator_id}/${repo_name}/${branch_name}/${file_name}`
     setLoading(true);
-    const response = await fetch(`${BASE_URL}/file/get/${creator_id}/${repo_name}/${branch_name}/${file_name}`, {
+    const response = await fetch(url, {
       credentials: 'include'
     });
     const data = await response.json();

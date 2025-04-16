@@ -222,65 +222,73 @@ export default function Repository() {
           </div>
         )}
 
-        {/* Branch and path navigation */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
+     
 
+{/* // Replace the buttons section with this updated version */}
+<div className="bg-gray-800 rounded-lg p-4 mb-4 border border-gray-700">
+  <div className="flex flex-wrap items-center justify-between gap-4">
+    {/* Left side buttons group */}
+    <div className="flex flex-wrap items-center gap-2">
+      <button
+        onClick={handleIssues}
+        className="flex items-center space-x-1 px-3 py-2 bg-green-600 hover:bg-green-700 rounded-md transition-all"
+      >
+        <AlertCircle size={16} className="mr-1" />
+        <span>Issues</span>
+      </button>
 
-          <div className="flex gap-2">
+      <button
+        onClick={handleContributors}
+        className="flex items-center space-x-1 px-3 py-2 bg-blue-600 hover:bg-blue-700 rounded-md transition-all"
+      >
+        <Users size={16} className="mr-1" />
+        <span>Contributors</span>
+      </button>
 
+      <button 
+        onClick={handleHistory}
+        className="flex items-center space-x-1 px-3 py-2 bg-gray-600 hover:bg-gray-700 rounded-md transition-all"
+      >
+        <Clock size={16} className="mr-1" />
+        <span>History</span>
+      </button>
 
+      
+    </div>
 
+    {/* Right side buttons group - Moved Add File here */}
+    <div className="flex items-center gap-2">
+      <button
+        onClick={() => setIsModalOpen(true)}
+        className="flex items-center px-4 py-2 bg-indigo-600 hover:bg-indigo-700 rounded-md transition-all"
+      >
+        <Plus size={16} className="mr-1" />
+        <span>Add File</span>
+      </button>
+
+      {contributer?.role === 'Admin' && (
+        <>
+          {branch_name !== 'main' && (
             <button
-              onClick={handleIssues}
-              className="flex items-center space-x-1 px-3 py-2 bg-green-600 hover:bg-green-700 rounded-md transition-all"
+              onClick={handlePullRequests}
+              className="flex items-center space-x-1 px-3 py-2 bg-purple-600 hover:bg-purple-700 rounded-md transition-all"
             >
-              <AlertCircle size={16} />
-              <span>Issues</span>
+              <GitPullRequest size={16} className="mr-1" />
+              <span>Pull Requests</span>
             </button>
-
-            <button
-              onClick={handleContributors}
-              className="flex items-center space-x-1 px-3 py-2 bg-blue-600 hover:bg-blue-700 rounded-md transition-all"
-            >
-              <Users size={16} />
-              <span>Contributors</span>
-            </button>
-            <button onClick={handleHistory}>
-              history
-            </button>
-
-            <button className="flex items-center space-x-1 px-3 py-2 bg-indigo-600 hover:bg-indigo-700 rounded-md transition-all">
-              <Download size={16} />
-              <span>Clone</span>
-            </button>
-
-            <button
-              onClick={() => setIsModalOpen(true)}
-              className="inline-flex items-center px-4 py-2 mx-64 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 transition-colors"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Add File
-            </button>
-
-
-
-            {contributer?.role == 'Admin' && (<>
-              {branch_name != 'main' && (<button
-                onClick={handlePullRequests}
-                className="flex items-center space-x-1 px-3 py-2 bg-purple-600 hover:bg-purple-700 rounded-md transition-all"
-              ><GitPullRequest size={16} />
-                <span>Pull Requests</span>
-              </button>)}
-              <button
-                onClick={() => navigate(`/${creator_id}/${repo_name}/settings`)}
-                className="flex items-center space-x-1 px-3 py-2 bg-gray-700 rounded-md hover:bg-gray-600 transition-all"
-              >
-                <Settings size={16} />
-                <span>Settings</span>
-              </button>
-            </>)}
-          </div>
-        </div>
+          )}
+          <button
+            onClick={() => navigate(`/${creator_id}/${repo_name}/settings`)}
+            className="flex items-center space-x-1 px-3 py-2 bg-gray-700 hover:bg-gray-600 rounded-md transition-all"
+          >
+            <Settings size={16} className="mr-1" />
+            <span>Settings</span>
+          </button>
+        </>
+      )}
+    </div>
+  </div>
+</div>
 
         {/* File list */}
         {loading ? (

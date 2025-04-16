@@ -26,7 +26,7 @@ function App() {
     <AuthProvider>
       <Router>
         <Toaster/>
-        <div className="min-h-screen bg-gray-900 text-gray-100 ">
+        <div className="min-h-screen bg-gray-900 text-gray-100  ">
           <Header />
 
           <main>
@@ -44,7 +44,8 @@ function App() {
               <Route path="/:creator_id/:repo_name/:branch_name/history" element={<BranchHistory />} />
 
               {/* <Route path="/:creator_id/:repo_name/:branch_name" element={<BranchView />} /> */}
-              <Route path="/:creator_id/:repo_name/:branch_name/:file_name" element={<FileView />} />
+              <Route path="/:creator_id/:repo_name/:branch_name/:file_name/" element={<FileView />} />
+              <Route path="/:creator_id/:repo_name/:branch_name/:file_name/:commit_id" element={<FileView />} />
               <Route path="/:creator_id/:repo_name/pull" element={<PullRequest />} />
               <Route path="/:creator_id/:repo_name/pull/:pr_id" element={<PullRequestDetail />} />
               <Route path="/:creator_id/:repo_name/:branch_name/:file_name/history" element={<FileHistory />} />

@@ -123,50 +123,88 @@ export const createFile=async (req, res) => {
 
 export const fetchFileByName = async (req, res) => {
   try {
-    const { repo_name, branch_name, creator_id, file_name } = req.params;
-    console.log("params",repo_name, branch_name, creator_id, file_name )
+    const { repo_name, branch_name, creator_id, file_name, commit_id } = req.params;
+    
+    // Find repository
     const repo = await Repository.findOne({ where: { repo_name, creator_id } });
     if (!repo) throw new Error("Repository not found");
 
+    // Find branch
     const [branch] = await sequelize.query(
       `SELECT * FROM Branches WHERE repo_id = ? AND name = ? LIMIT 1`,
       { replacements: [repo.repo_id, branch_name], type: sequelize.QueryTypes.SELECT }
     );
     if (!branch) throw new Error("Branch not found");
 
-    const [file] = await sequelize.query(
-      `
-      SELECT f.file_name, f.file_content, c.commit_message, c.commit_timestamp
-      FROM Files f
-      INNER JOIN (
-        SELECT MAX(commit_id) AS latest_commit_id
-        FROM Files
-        WHERE file_name = ? AND commit_id IN (
-          SELECT commit_id FROM Commits WHERE branch_id = ?
-        )
-      ) latest
-      ON f.commit_id = latest.latest_commit_id AND f.file_name = ?
-      INNER JOIN Commits c ON c.commit_id = f.commit_id
-      `,
-      {
-        replacements: [file_name, branch.branch_id, file_name],
-        type: sequelize.QueryTypes.SELECT
-      }
-    );
+    let fileQuery;
+    let queryReplacements;
 
-    if (!file) return res.status(404).json({ error: 'File not found' });
+    if (commit_id) {
+      // Get specific version of file from commit
+      fileQuery = `
+        SELECT 
+          f.file_name, 
+          f.file_content, 
+          c.commit_message, 
+          c.commit_timestamp,
+          u.username as author
+        FROM Files f
+        INNER JOIN Commits c ON c.commit_id = f.commit_id
+        INNER JOIN Users u ON u.user_id = c.creator_id
+        WHERE f.commit_id = ? 
+        AND f.file_name = ?
+        AND c.branch_id = ?
+      `;
+      queryReplacements = [commit_id, file_name, branch.branch_id];
+    } else {
+      // Get latest version of file
+      fileQuery = `
+        SELECT 
+          f.file_name, 
+          f.file_content, 
+          c.commit_message, 
+          c.commit_timestamp,
+          u.username as author
+        FROM Files f
+        INNER JOIN (
+          SELECT MAX(commit_id) AS latest_commit_id
+          FROM Files
+          WHERE file_name = ? AND commit_id IN (
+            SELECT commit_id FROM Commits WHERE branch_id = ?
+          )
+        ) latest ON f.commit_id = latest.latest_commit_id
+        INNER JOIN Commits c ON c.commit_id = f.commit_id
+        INNER JOIN Users u ON u.user_id = c.creator_id
+        WHERE f.file_name = ?
+      `;
+      queryReplacements = [file_name, branch.branch_id, file_name];
+    }
 
-    // Convert buffer to string
-    const content = file.file_content.toString('utf-8');
+    const [file] = await sequelize.query(fileQuery, {
+      replacements: queryReplacements,
+      type: sequelize.QueryTypes.SELECT
+    });
+
+    if (!file) {
+      return res.status(404).json({ 
+        error: commit_id ? 
+          'File version not found in this commit' : 
+          'File not found in this branch'
+      });
+    }
+
+    // Convert buffer to string if it exists
+    const content = file.file_content ? file.file_content.toString('utf-8') : '';
 
     res.status(200).json({
       file_name: file.file_name,
       content,
       commit_message: file.commit_message,
-      commit_timestamp: file.commit_timestamp
+      commit_timestamp: file.commit_timestamp,
+      author: file.author,
+      commit_id: commit_id || file.commit_id
     });
 
-    // res.status(200).json({message:"message"})
   } catch (err) {
     console.error("Fetch file error:", err);
     res.status(500).json({ error: err.message });
@@ -219,5 +257,61 @@ export const updateFile = async (req, res) => {
   } catch (err) {
     console.error("Update file error:", err);
     res.status(500).json({ error: err.message });
+  }
+};
+
+export const getFileHistory = async (req, res) => {
+  try {
+    const { repo_name, branch_name, creator_id, file_name } = req.params;
+
+    const repo = await Repository.findOne({ 
+      where: { repo_name, creator_id } 
+    });
+    
+    if (!repo) {
+      return res.status(404).json({ message: 'Repository not found' });
+    }
+
+    const branch = await Branch.findOne({
+      where: { 
+        repo_id: repo.repo_id,
+        name: branch_name
+      }
+    });
+
+    if (!branch) {
+      return res.status(404).json({ message: 'Branch not found' });
+    }
+
+    // Get commit history without file content
+    const commitHistory = await sequelize.query(`
+      SELECT DISTINCT
+        c.commit_id,
+        c.commit_message,
+        c.commit_timestamp,
+        u.username,
+        u.avatar
+      FROM Commits c
+      INNER JOIN Files f ON f.commit_id = c.commit_id
+      INNER JOIN Users u ON c.creator_id = u.user_id
+      WHERE c.branch_id = :branchId
+      AND f.file_name = :fileName
+      ORDER BY c.commit_timestamp DESC
+    `, {
+      replacements: {
+        branchId: branch.branch_id,
+        fileName: file_name
+      },
+      type: sequelize.QueryTypes.SELECT
+    });
+
+    res.status(200).json({
+      message: 'success',
+      data: commitHistory
+    });
+
+  } catch (error) {
+    console.error('Get file history error:', error);
+    res.status(500).json({ message: error.message });
   }
 };

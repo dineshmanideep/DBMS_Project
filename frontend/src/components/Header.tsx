@@ -25,6 +25,26 @@ export default function Header() {
                  !!null =false 
                   */}
 
+            
+
+          </div>
+
+          
+
+          <div className="flex items-center space-x-4">
+            
+            {!!user&&(<>
+              <div className="relative">
+              <button className="flex items-center space-x-2 text-gray-300 hover:text-white">
+                <img onClick={()=>navigate(`/profile/${user?.user_id}`)}
+                  src={user?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.full_name)}`}
+                  alt="User avatar"
+                  className="h-8 w-8 rounded-full"
+                />
+              </button>
+              {/* User dropdown menu */}
+            </div>
+            </>)}
             {!!user?(<>
               <div className="ml-10 hidden md:block">
               <div className="flex items-center space-x-4">
@@ -46,34 +66,6 @@ export default function Header() {
               </div>
             </div></>)
             }
-
-          </div>
-
-          
-
-          <div className="flex items-center space-x-4">
-            <ThemeToggle />
-            {/* <button className="text-gray-300 hover:text-white">
-              <Bell size={20} />
-            </button> */}
-            {/* <div className="relative">
-              <button className="flex items-center space-x-1 text-gray-300 hover:text-white">
-                <Plus size={20} />
-                <ChevronDown size={16} />
-              </button>
-            </div> */}
-            {!!user&&(<>
-              <div className="relative">
-              <button className="flex items-center space-x-2 text-gray-300 hover:text-white">
-                <img onClick={()=>navigate(`/profile/${user?.user_id}`)}
-                  src={user?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.full_name)}`}
-                  alt="User avatar"
-                  className="h-8 w-8 rounded-full"
-                />
-              </button>
-              {/* User dropdown menu */}
-            </div>
-            </>)}
             
           </div>
         </div>
