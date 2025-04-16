@@ -5,7 +5,7 @@ export const updateUser = async (req, res) => {
     try {
         console.log("updateUserhit")
         const { user_id } = req.params;
-        const { username, email, full_name, password } = req.body;
+        const { username, email, full_name, password ,bio, website,location,avatar } = req.body;
 
         // Check if user exists
         const user = await User.findByPk(user_id);
@@ -18,6 +18,10 @@ export const updateUser = async (req, res) => {
         if (username) updates.username = username;
         if (email) updates.email = email;
         if (full_name) updates.full_name = full_name;
+        if (bio) updates.bio = bio;
+        if (website) updates.website = website;
+        if (location) updates.location = location;
+        if (avatar) updates.avatar = avatar;
         if (password) {
             const hashedPassword = await bcrypt.hash(password, 10);
             updates.password = hashedPassword;
@@ -31,7 +35,7 @@ export const updateUser = async (req, res) => {
 
         // Get updated user (excluding password)
         const updatedUser = await User.findByPk(user_id, {
-            attributes: ['user_id', 'username', 'email', 'full_name', 'registration_date']
+            attributes: ['user_id', 'username', 'email', 'full_name', 'registration_date' ,'avatar','location','website','bio']
         });
 
         res.status(200).json({
@@ -57,7 +61,7 @@ export const getUserById = async (req, res) => {
         const { user_id } = req.params;
 
         const user = await User.findByPk(user_id, {
-            attributes: ['user_id', 'username', 'email', 'full_name', 'registration_date']
+            attributes: ['user_id', 'username', 'email', 'full_name', 'registration_date' ,'avatar','location','website','bio']
         });
 
         if (!user) {

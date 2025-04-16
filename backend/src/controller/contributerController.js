@@ -29,7 +29,7 @@ export const getAllContributers = async (req, res) => {
             },
             include: [{
                 model: User,
-                attributes: ['user_id', 'username', 'email', 'full_name', 'registration_date']
+                attributes: ['user_id', 'username', 'email', 'full_name', 'registration_date','avatar']
             }],
             attributes: ['role', 'user_id']
         });
@@ -68,6 +68,7 @@ export const getAllContributers = async (req, res) => {
                     username: contributor.User.username,
                     fullName: contributor.User.full_name || contributor.User.username,
                     email: contributor.User.email,
+                    avatar:contributor.User.avatar,
                     role: contributor.role,
                     contributions: commits.length,
                     branches_created: branches.length,
