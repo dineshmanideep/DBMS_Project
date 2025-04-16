@@ -177,7 +177,7 @@ export default function FileView() {
 
             {/* Comments section (same as before) */}
             <div className="bg-gray-800 rounded-lg shadow-lg overflow-hidden">
-              <div className="p-4 border-b border-gray-700 flex justify-between items-center">
+              {/* <div className="p-4 border-b border-gray-700 flex justify-between items-center">
                 <h2 className="text-lg font-semibold">Comments ({comments.length})</h2>
                 <button
                   onClick={() => setShowCommentForm(!showCommentForm)}
@@ -185,9 +185,9 @@ export default function FileView() {
                 >
                   <MessageSquare size={16} /><span className="ml-1">{showCommentForm ? 'Cancel' : 'Add comment'}</span>
                 </button>
-              </div>
+              </div> */}
 
-              {showCommentForm && (
+              {/* {showCommentForm && (
                 <div className="p-4 border-b border-gray-700">
                   <form
                   // onSubmit={handleAddComment}
@@ -216,7 +216,7 @@ export default function FileView() {
                     </div>
                   </form>
                 </div>
-              )}
+              )} */}
 
               {/* <div className="divide-y divide-gray-700">
                 {comments.length > 0 ? (

@@ -325,7 +325,7 @@ export default function Profile() {
                     <div className="flex items-start justify-between">
                       <div>
                         <h3 className="text-lg font-medium">
-                          <a href={`/${repo.Repository.creator_id}/${repo.Repository.repo_name}`}
+                          <a href={`/${repo.Repository.creator_id}/${repo.Repository.repo_name}/main`}
                             className="text-indigo-400 hover:text-indigo-300 transition-colors flex items-center">
                             {repo.Repository.repo_name}
                             <span className="ml-2 px-2 py-0.5 text-xs font-medium rounded-full bg-gray-700 text-gray-300 flex items-center">
@@ -397,7 +397,7 @@ export default function Profile() {
                   <div key={repo.Repository.repo_id}
                     className="bg-gray-750 rounded-lg p-4 border border-gray-700 hover:border-gray-600 transition-colors">
                     <h3 className="text-indigo-400 font-medium hover:text-indigo-300 cursor-pointer flex items-center">
-                      <a href={`/${repo.Repository.creator_id}/${repo.Repository.repo_name}`}>
+                      <a href={`/${repo.Repository.creator_id}/${repo.Repository.repo_name}/main`}>
                         {repo.Repository.repo_name}
                       </a>
                       <span className="ml-2 px-2 py-0.5 text-xs font-medium rounded-full bg-green-900 text-green-300 flex items-center">
@@ -447,7 +447,7 @@ export default function Profile() {
             </div>
 
             {/* Recent Activity */}
-            <div className="bg-gray-800 rounded-xl shadow-lg border border-gray-700 overflow-hidden">
+            {/* <div className="bg-gray-800 rounded-xl shadow-lg border border-gray-700 overflow-hidden">
               <div className="px-6 py-4 border-b border-gray-700">
                 <h2 className="text-lg font-medium text-white">Recent Activity</h2>
               </div>
@@ -501,10 +501,10 @@ export default function Profile() {
                   </div>
                 </div>
               </div>
-            </div>
+            </div> */}
 
             {/* Contribution Graph */}
-            <div className="bg-gray-800 rounded-xl shadow-lg border border-gray-700 overflow-hidden">
+            {/* <div className="bg-gray-800 rounded-xl shadow-lg border border-gray-700 overflow-hidden">
               <div className="px-6 py-4 border-b border-gray-700">
                 <h2 className="text-lg font-medium text-white">Contribution Activity</h2>
               </div>
@@ -538,7 +538,7 @@ export default function Profile() {
                 ))}
                 More
               </div>
-            </div>
+            </div> */}
           </div>
         </div>
       </div>
